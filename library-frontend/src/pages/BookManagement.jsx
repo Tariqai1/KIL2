@@ -306,13 +306,14 @@ const BookManagement = () => {
                 isOpen={isEditModalOpen}
                 onClose={closeEditModal}
                 title={editingBook ? "Edit Book Details" : "Add New Book"}
-                size="max-w-4xl"
+                size="max-w-5xl"
             >
                 <BookForm
                     initialData={editingBook}
                     isEditing={!!editingBook}
-                    onBookAdded={handleFormSuccess}   // Unified Success Handler
-                    onBookUpdated={handleFormSuccess} // Unified Success Handler
+                    onBookAdded={handleFormSuccess}
+                    onBookUpdated={handleFormSuccess}
+                    onCancel={closeEditModal}
                 />
             </Modal>
 

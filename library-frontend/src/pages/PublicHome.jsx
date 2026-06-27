@@ -62,6 +62,11 @@ const PublicHome = () => {
   const [sortBy, setSortBy] = useState("newest");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
+  const featuredBooks = useMemo(() => {
+    if (!Array.isArray(books) || books.length === 0) return [];
+    return books.slice(0, 6);
+  }, [books]);
+
   // Router location state (preSearch)
   const location = useLocation();
 
@@ -213,18 +218,129 @@ const PublicHome = () => {
       {/* Hero */}
       <LibraryHero />
 
-      {/* Search + Filters strip */}
-      <LibrarySearchStrip
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        selectedLanguage={selectedLanguage}
-        onLanguageChange={setSelectedLanguage}
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
-        sortBy={sortBy}
-        onSortChange={setSortBy}
-        categories={categories}
-      />
+      {/* Library Overview */}
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        <div className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-950 px-6 py-10 shadow-[0_40px_120px_-60px_rgba(15,23,42,0.85)] sm:px-10 sm:py-14">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.18),_transparent_25%),radial-gradient(circle_at_bottom_right,_rgba(168,85,247,0.16),_transparent_22%)]" />
+          <div className="relative grid gap-8 lg:grid-cols-[1.4fr_0.9fr] items-start">
+            <div className="space-y-6">
+              <span className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-500/10 px-4 py-2 text-xs uppercase tracking-[0.35em] text-cyan-200 shadow-[0_0_0_1px_rgba(56,189,248,0.05)]">
+                <span className="h-2.5 w-2.5 rounded-full bg-cyan-400 animate-pulse shadow-cyan-500/40" />
+                Adaptive Knowledge Grid
+              </span>
+
+              <h2 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
+                Welcome to the future of the library — intelligent, curated, and luminous.
+              </h2>
+
+              <p className="max-w-2xl text-sm leading-7 text-slate-300 md:text-base">
+                Kokan Library now surfaces trusted Islamic resources with a digital-first, future-ready lens. Explore approved titles, discover featured collections, and access secure restricted books through a smart, polished reading experience.
+              </p>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="rounded-3xl border border-cyan-500/15 bg-white/5 p-5 shadow-[0_30px_60px_-40px_rgba(96,165,250,0.35)] backdrop-blur-xl">
+                  <p className="text-4xl font-bold text-white">{books.length}</p>
+                  <p className="mt-2 text-xs uppercase tracking-[0.3em] text-cyan-200/80">Approved Titles</p>
+                </div>
+                <div className="rounded-3xl border border-violet-500/15 bg-white/5 p-5 shadow-[0_30px_60px_-40px_rgba(168,85,247,0.28)] backdrop-blur-xl">
+                  <p className="text-4xl font-bold text-white">{featuredBooks.length}</p>
+                  <p className="mt-2 text-xs uppercase tracking-[0.3em] text-violet-200/80">Featured Picks</p>
+                </div>
+                <div className="rounded-3xl border border-slate-400/10 bg-white/5 p-5 shadow-[0_30px_60px_-40px_rgba(148,163,184,0.25)] backdrop-blur-xl">
+                  <p className="text-4xl font-bold text-white">Secure</p>
+                  <p className="mt-2 text-xs uppercase tracking-[0.3em] text-slate-300/80">Admin Approved</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/70 p-6 shadow-2xl">
+              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-cyan-400 via-blue-400 to-violet-400 opacity-70" />
+              <div className="space-y-5">
+                <h3 className="text-2xl font-semibold tracking-tight text-white">Why this library feels futuristic</h3>
+                <div className="space-y-4 text-sm text-slate-300">
+                  <div className="rounded-3xl border border-slate-700/80 bg-slate-950/70 p-4 shadow-lg">
+                    <p className="font-semibold text-white">AI-inspired curation</p>
+                    <p className="mt-1 text-slate-400">Books are surfaced by relevance, trust, and community impact.</p>
+                  </div>
+                  <div className="rounded-3xl border border-slate-700/80 bg-slate-950/70 p-4 shadow-lg">
+                    <p className="font-semibold text-white">Secure restricted access</p>
+                    <p className="mt-1 text-slate-400">Admin-reviewed titles are held behind a trusted access flow.</p>
+                  </div>
+                  <div className="rounded-3xl border border-slate-700/80 bg-slate-950/70 p-4 shadow-lg">
+                    <p className="font-semibold text-white">Instant discovery</p>
+                    <p className="mt-1 text-slate-400">Search, filter, and browse without noise.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="absolute -right-10 bottom-6 h-32 w-32 rounded-full bg-gradient-to-br from-cyan-500/20 to-violet-500/10 blur-3xl" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 pb-8">
+        <div className="rounded-[2rem] border border-white/10 bg-slate-950/85 p-6 shadow-2xl">
+          <div className="mb-6 text-slate-200">
+            <p className="text-sm uppercase tracking-[0.3em] text-cyan-300 font-semibold">Library Search</p>
+            <h3 className="text-2xl font-semibold text-white">Search the library collection</h3>
+            <p className="mt-2 text-sm text-slate-400">Find books, authors, publishers and smart recommendations right from the library section.</p>
+          </div>
+          <LibrarySearchStrip
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            selectedLanguage={selectedLanguage}
+            onLanguageChange={setSelectedLanguage}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            categories={categories}
+          />
+        </div>
+      </div>
+
+      {/* Featured Section */}
+      <div className="max-w-7xl mx-auto px-4 pb-12">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-6">
+          <div>
+            <p className="text-sm uppercase tracking-[0.3em] text-indigo-600 font-bold">Library Highlights</p>
+            <h2 className="text-3xl font-bold text-slate-900">Recommended by the library team</h2>
+          </div>
+          <button
+            onClick={() => {
+              const el = document.getElementById("book-grid");
+              if (el) el.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+          >
+            Browse full collection
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {Array.from({ length: 4 }).map((_, idx) => (
+              <BookCardSkeleton key={idx} />
+            ))}
+          </div>
+        ) : featuredBooks.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredBooks.map((book) => (
+              <PublicBookCard
+                key={book.id}
+                book={book}
+                isFavorite={favorites.includes(book.id)}
+                onToggleFavorite={(e) => toggleFavorite(e, book.id)}
+                onClick={() => setSelectedBook(book)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
+            No featured titles are available yet. Please check back soon.
+          </div>
+        )}
+      </div>
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-8" id="book-grid">
@@ -232,10 +348,10 @@ const PublicHome = () => {
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8 border-b border-gray-200 pb-4">
           <div>
             <h2 className="text-3xl font-serif font-bold text-[#002147]">
-              {searchTerm ? `Results for "${searchTerm}"` : "Latest Books"}
+              {searchTerm ? `Results for "${searchTerm}"` : "Explore the Library"}
             </h2>
             <p className="text-gray-500 text-sm mt-1">
-              Browse our extensive collection of Islamic literature.
+              Browse our handpicked selection, curated recommendations, and full catalog from Kokan Islamic Library.
             </p>
           </div>
 

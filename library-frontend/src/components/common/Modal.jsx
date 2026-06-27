@@ -47,25 +47,25 @@ const Modal = ({ isOpen, onClose, title, children, size = 'max-w-xl' }) => {
                             leaveTo="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
                         >
                             {/* This Dialog.Panel is now the direct child and will receive the props */}
-                            <Dialog.Panel className={`w-full ${size} transform overflow-hidden rounded-lg bg-white text-left align-middle shadow-xl transition-all`}>
+                            <Dialog.Panel className={`w-full ${size} transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-2xl transition-all`}>
                                 {/* Modal Header */}
-                                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white sticky top-0 z-10">
                                     {title && (
-                                        <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-800">
+                                        <Dialog.Title as="h3" className="text-base font-black text-slate-800">
                                             {title}
                                         </Dialog.Title>
                                     )}
                                     <button
                                         type="button"
-                                        className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded-md"
+                                        className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-all"
                                         onClick={onClose}
                                         aria-label="Close modal"
                                     >
-                                        <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                                        <XMarkIcon className="h-5 w-5" aria-hidden="true" />
                                     </button>
                                 </div>
                                 {/* Modal Body */}
-                                <div className="p-6">
+                                <div className="max-h-[80vh] overflow-y-auto">
                                     {children}
                                 </div>
                             </Dialog.Panel>

@@ -43,7 +43,10 @@ const Login = () => {
 
   /**
    * ✅ FIXED SMART REDIRECT LOGIC
-   * Debugging logs added to see why admin is going to home.
+   * - Better role extraction
+   * - Extended admin roles
+   * - Proper async handling
+   * - Debug logging
    */
   const redirectAfterLogin = (user) => {
     console.group("🔐 Login Redirect Logic Debug");
@@ -61,22 +64,34 @@ const Login = () => {
     roleName = roleName.toLowerCase().trim();
     console.log("Parsed Role Name:", roleName);
 
-    // 2. Admin Check
-    const adminRoles = ["admin", "superadmin", "manager", "editor", "librarian"];
+    // 2. ✅ EXTENDED Admin Roles List
+    const adminRoles = [
+      "admin",
+      "superadmin", 
+      "administrator",
+      "manager",
+      "editor",
+      "librarian",
+      "staff"
+    ];
+    
     const isAdmin = adminRoles.includes(roleName);
-    console.log("Is Admin?", isAdmin);
+    console.log("Is Admin?", isAdmin, "Admin roles:", adminRoles);
 
     // 3. Navigation
     if (isAdmin) {
       console.log("🚀 Redirecting to: /admin/dashboard");
       console.groupEnd();
-      navigate("/admin/dashboard", { replace: true });
+      // ✅ FIX: Use setTimeout to ensure proper execution order
+      setTimeout(() => {
+        navigate("/admin/dashboard", { replace: true });
+      }, 100);
     } else {
       console.log("🏠 Redirecting to: / (Home)");
       console.groupEnd();
       
       const from = location.state?.from?.pathname;
-      if (from && from !== "/login") {
+      if (from && from !== "/login" && from !== "/register") {
         navigate(from, { replace: true });
       } else {
         navigate("/", { replace: true });
@@ -156,81 +171,140 @@ const Login = () => {
   });
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[#F8FAFC] via-[#EEF2FF] to-[#ECFEFF] relative overflow-hidden">
-      
-      {/* Background Decor */}
-      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-200/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-purple-200/20 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen flex overflow-hidden bg-white">
 
-      {/* Main Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 14, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.35 }}
-        className="w-full max-w-sm z-10"
-      >
-        <motion.div
-          animate={shake ? { x: [0, -10, 10, -6, 6, 0] } : { x: 0 }}
-          transition={{ duration: 0.4 }}
-          className="bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden"
-        >
-          {/* Header */}
-          <div className="p-8 bg-gradient-to-br from-[#002147] to-[#003366] text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-10">
-              <ShieldCheckIcon className="w-24 h-24 transform rotate-12" />
-            </div>
+      {/* ======================================================
+          LEFT PANEL — Branding (desktop only)
+         ====================================================== */}
+      <div className="hidden lg:flex lg:w-[46%] xl:w-[48%] relative flex-col items-center justify-center p-14 overflow-hidden bg-gradient-to-br from-[#000C1D] via-[#001D3D] to-[#003566]">
 
-            <div className="relative z-10 flex flex-col items-center">
-              <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center mb-4 border border-white/20 shadow-inner">
-                <ArrowRightOnRectangleIcon className="w-7 h-7 text-white" />
+        {/* Animated background mesh */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/3 -left-40 w-[520px] h-[520px] bg-blue-600/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-1/4 -right-40 w-[420px] h-[420px] bg-cyan-500/8 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1.5s" }} />
+          <div
+            className="absolute inset-0 opacity-[0.025]"
+            style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px)", backgroundSize: "56px 56px" }}
+          />
+          {/* Floating orbs */}
+          <div className="absolute top-16 right-20 w-3 h-3 rounded-full bg-cyan-300/40 animate-ping" style={{ animationDuration: "3s" }} />
+          <div className="absolute bottom-24 left-16 w-2 h-2 rounded-full bg-blue-300/50 animate-ping" style={{ animationDuration: "4s", animationDelay: "1s" }} />
+        </div>
+
+        {/* Content */}
+        <div className="relative z-10 max-w-sm w-full text-center">
+
+          {/* Logo icon */}
+          <div className="flex justify-center mb-10">
+            <div className="relative">
+              <div className="absolute inset-0 rounded-3xl bg-cyan-400/20 blur-2xl scale-150" />
+              <div className="relative w-20 h-20 rounded-3xl bg-white/10 border border-white/20 flex items-center justify-center shadow-2xl backdrop-blur-sm">
+                <ShieldCheckIcon className="w-10 h-10 text-white" />
               </div>
-              <h2 className="text-2xl font-bold tracking-tight">Welcome Back</h2>
-              <p className="text-blue-100 text-sm mt-1 font-medium">
-                Library Management System
-              </p>
             </div>
           </div>
 
-          {/* Body */}
-          <div className="p-8">
-            
+          <h1 className="text-4xl font-black text-white leading-tight mb-1">Markaz Library</h1>
+          <p className="text-cyan-300 font-bold text-xl mb-3">Management System</p>
+          <p className="text-blue-200/55 text-sm mb-10 leading-relaxed">
+            Your digital gateway to knowledge — manage collections, track borrowing history, and explore thousands of resources.
+          </p>
+
+          {/* Feature cards */}
+          <div className="space-y-3 text-left">
+            {[
+              { emoji: "📚", title: "Books & Digital Resources", desc: "Full catalog with PDF viewer & tracking" },
+              { emoji: "🔐", title: "Role-Based Access Control", desc: "Admin, Manager, Student & Member roles" },
+              { emoji: "📊", title: "Real-Time Analytics", desc: "Borrowing trends & circulation reports" },
+            ].map((f) => (
+              <div
+                key={f.title}
+                className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl px-4 py-3.5 hover:bg-white/10 transition-all duration-300 cursor-default group"
+              >
+                <span className="text-2xl flex-shrink-0 group-hover:scale-110 transition-transform duration-300">{f.emoji}</span>
+                <div>
+                  <div className="text-white font-bold text-sm">{f.title}</div>
+                  <div className="text-blue-300/50 text-xs mt-0.5">{f.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-10 text-blue-200/25 text-xs tracking-wide">
+            &copy; {new Date().getFullYear()} Markaz Ahle Hadees Kokan
+          </p>
+        </div>
+      </div>
+
+      {/* ======================================================
+          RIGHT PANEL — Form
+         ====================================================== */}
+      <div className="flex-1 flex flex-col items-center justify-center bg-white p-6 sm:p-10 xl:p-16 overflow-y-auto relative">
+
+        {/* Subtle bg decoration */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none opacity-70" />
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-gradient-to-tr from-sky-50 to-cyan-50 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none opacity-70" />
+
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
+          className="relative z-10 w-full max-w-[420px]"
+        >
+          {/* Mobile: mini logo */}
+          <div className="lg:hidden flex items-center gap-3 mb-8">
+            <div className="w-10 h-10 rounded-2xl bg-[#002147] flex items-center justify-center shadow-lg shadow-blue-900/25">
+              <ShieldCheckIcon className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-black text-slate-800">Markaz Library</p>
+              <p className="text-[11px] text-slate-500 font-medium">Management System</p>
+            </div>
+          </div>
+
+          {/* Page heading */}
+          <div className="mb-8">
+            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Welcome back</h2>
+            <p className="text-slate-500 text-sm mt-1.5 font-medium">Sign in to continue to your library account</p>
+          </div>
+
+          <motion.div
+            animate={shake ? { x: [0, -10, 10, -6, 6, 0] } : { x: 0 }}
+            transition={{ duration: 0.4 }}
+          >
             {/* Google Button */}
             <button
               onClick={() => googleLogin()}
               disabled={isDisabled}
-              className="w-full flex items-center justify-center gap-3 bg-white border border-slate-300 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-50 active:scale-[0.98] transition-all shadow-sm group disabled:opacity-60 disabled:pointer-events-none"
+              className="w-full flex items-center justify-center gap-3 bg-white border-2 border-slate-200 text-slate-700 font-semibold py-3.5 rounded-2xl hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] transition-all duration-200 group disabled:opacity-50 disabled:pointer-events-none mb-5 shadow-sm"
             >
               {googleLoading ? (
                 <span className="w-5 h-5 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
               ) : (
-                <img 
-                  src="https://www.svgrepo.com/show/475656/google-color.svg" 
-                  alt="Google" 
-                  className="w-5 h-5 group-hover:scale-110 transition-transform"
+                <img
+                  src="https://www.svgrepo.com/show/475656/google-color.svg"
+                  alt="Google"
+                  className="w-5 h-5 group-hover:scale-110 transition-transform duration-200"
                 />
               )}
               <span>Continue with Google</span>
             </button>
 
             {/* Divider */}
-            <div className="flex items-center gap-3 my-6">
+            <div className="flex items-center gap-4 mb-5">
               <div className="h-px bg-slate-200 flex-1" />
-              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-                Or login with email
-              </span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">or</span>
               <div className="h-px bg-slate-200 flex-1" />
             </div>
 
             {/* Form */}
-            <form onSubmit={handleLogin} className="space-y-5">
-              
+            <form onSubmit={handleLogin} className="space-y-4">
+
               {/* Username */}
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-500 uppercase ml-1">
-                  Username
-                </label>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Username</label>
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 group-focus-within:text-[#2D89C8] transition-colors">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 group-focus-within:text-[#002147] transition-colors pointer-events-none">
                     <UserIcon className="w-5 h-5" />
                   </div>
                   <input
@@ -239,8 +313,7 @@ const Login = () => {
                     value={credentials.username}
                     onChange={handleChange}
                     disabled={isDisabled}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none
-                    focus:ring-2 focus:ring-[#2D89C8]/20 focus:border-[#2D89C8] focus:bg-white transition-all text-sm font-medium text-slate-800"
+                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-2xl outline-none focus:border-[#002147] focus:bg-white focus:shadow-[0_0_0_4px_rgba(0,33,71,0.07)] transition-all text-sm font-medium text-slate-800 placeholder:text-slate-400 placeholder:font-normal disabled:opacity-60 disabled:cursor-not-allowed"
                     placeholder="Enter your username"
                     autoComplete="username"
                   />
@@ -248,59 +321,45 @@ const Login = () => {
               </div>
 
               {/* Password */}
-              <div className="space-y-1">
-                <div className="flex justify-between items-center px-1">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase">
-                    Password
-                  </label>
-                  <Link
-                    to="/forgot-password"
-                    className="text-[11px] text-[#2D89C8] font-bold hover:underline"
-                  >
-                    Forgot Password?
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Password</label>
+                  <Link to="/forgot-password" className="text-[11px] text-[#002147] font-bold hover:underline transition-colors">
+                    Forgot password?
                   </Link>
                 </div>
-
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 group-focus-within:text-[#2D89C8] transition-colors">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 group-focus-within:text-[#002147] transition-colors pointer-events-none">
                     <LockClosedIcon className="w-5 h-5" />
                   </div>
-
                   <input
                     type={showPassword ? "text" : "password"}
                     name="password"
                     value={credentials.password}
                     onChange={handleChange}
                     disabled={isDisabled}
-                    className="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none
-                    focus:ring-2 focus:ring-[#2D89C8]/20 focus:border-[#2D89C8] focus:bg-white transition-all text-sm font-medium text-slate-800"
+                    className="w-full pl-11 pr-12 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-2xl outline-none focus:border-[#002147] focus:bg-white focus:shadow-[0_0_0_4px_rgba(0,33,71,0.07)] transition-all text-sm font-medium text-slate-800 placeholder:text-slate-400 placeholder:font-normal disabled:opacity-60 disabled:cursor-not-allowed"
                     placeholder="••••••••"
                     autoComplete="current-password"
                   />
-
                   <button
                     type="button"
                     onClick={() => setShowPassword((p) => !p)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-[#2D89C8] transition-colors outline-none"
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-[#002147] transition-colors outline-none"
                     disabled={isDisabled}
                   >
-                    {showPassword ? (
-                      <EyeSlashIcon className="w-5 h-5" />
-                    ) : (
-                      <EyeIcon className="w-5 h-5" />
-                    )}
+                    {showPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
 
               {/* Submit Button */}
               <motion.button
-                whileHover={{ scale: isDisabled ? 1 : 1.02 }}
+                whileHover={{ scale: isDisabled ? 1 : 1.01, y: isDisabled ? 0 : -1 }}
                 whileTap={{ scale: isDisabled ? 1 : 0.98 }}
                 type="submit"
                 disabled={isDisabled}
-                className="w-full py-3.5 rounded-xl bg-[#002147] text-white font-bold text-sm shadow-lg shadow-blue-900/20
-                hover:bg-[#003366] hover:shadow-blue-900/30 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-4 rounded-2xl bg-[#002147] text-white font-bold text-sm shadow-lg shadow-[#002147]/20 hover:bg-[#003166] hover:shadow-[#002147]/35 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2.5 mt-2"
               >
                 {loading ? (
                   <>
@@ -308,28 +367,29 @@ const Login = () => {
                     <span>Verifying...</span>
                   </>
                 ) : (
-                  "Sign In to Library"
+                  <>
+                    <ArrowRightOnRectangleIcon className="w-4 h-4" />
+                    <span>Sign In to Library</span>
+                  </>
                 )}
               </motion.button>
             </form>
 
             {/* Register Link */}
-            <div className="mt-6 text-center">
-              <p className="text-xs text-slate-500 font-medium">
-                Don't have an account?{" "}
-                <Link to="/register" className="text-[#2D89C8] font-bold hover:text-[#1a5f8f] transition-colors ml-1">
-                  Create Account
-                </Link>
-              </p>
-            </div>
-          </div>
-        </motion.div>
+            <p className="mt-7 text-center text-sm text-slate-500 font-medium">
+              Don't have an account?{" "}
+              <Link to="/register" className="text-[#002147] font-bold hover:underline transition-colors">
+                Create Account
+              </Link>
+            </p>
+          </motion.div>
 
-        {/* Footer */}
-        <p className="mt-6 text-center text-xs text-slate-400 font-medium">
-          &copy; {new Date().getFullYear()} Markaz Library System. Secure Access.
-        </p>
-      </motion.div>
+          {/* Footer */}
+          <p className="mt-12 text-center text-xs text-slate-400">
+            &copy; {new Date().getFullYear()} Markaz Library System &bull; Secure Access
+          </p>
+        </motion.div>
+      </div>
     </div>
   );
 };

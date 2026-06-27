@@ -4,7 +4,7 @@ import { toast } from 'react-hot-toast';
 import { bookService } from '../../api/bookService'; // Ensure path is correct
 import BookFormUI from './BookFormUI';
 
-const BookForm = ({ initialData, isEditing, onBookAdded, onBookUpdated }) => {
+const BookForm = ({ initialData, isEditing, onBookAdded, onBookUpdated, onCancel }) => {
     
     // --- 1. STATE MANAGEMENT ---
     const [loading, setLoading] = useState(false);
@@ -119,8 +119,15 @@ const BookForm = ({ initialData, isEditing, onBookAdded, onBookUpdated }) => {
     };
 
     const handleSubcategoryChange = (e) => {
-        const selectedOptions = Array.from(e.target.selectedOptions, option => parseInt(option.value));
-        setFormData(prev => ({ ...prev, subcategory_ids: selectedOptions }));
+        // ✅ FIX: SubcategorySelect sends custom event with value as array
+        const { name, value } = e.target;
+        if (name === 'subcategory_ids') {
+            const categoryIds = Array.isArray(value) 
+                ? value.map(v => Number(v))
+                : [];
+            setFormData(prev => ({ ...prev, subcategory_ids: categoryIds }));
+            console.log("📌 Categories selected:", categoryIds);
+        }
     };
 
     // 🔥 CRITICAL FIX: Handle File Selection correctly
@@ -226,6 +233,7 @@ const BookForm = ({ initialData, isEditing, onBookAdded, onBookUpdated }) => {
             onSubcategoryChange={handleSubcategoryChange}
             onFileChange={handleFileChange}
             onSubmit={handleSubmit}
+            onCancel={onCancel}
         />
     );
 };

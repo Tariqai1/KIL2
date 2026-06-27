@@ -11,17 +11,26 @@ export const bookService = {
      * Fetches all books.
      * Supports both Public (isApproved=true) and Admin (queryParams object).
      */
-    async getAllBooks(queryParams = {}) {
+    async getAllBooks(queryParams = {}, limit = 100, extraParams = {}) {
         try {
-            let configParams = queryParams;
+            let params = {};
 
-            // ✅ FIX: Standardize params
-            if (queryParams === true) {
-                configParams = { is_approved: true };
+            if (typeof queryParams === 'boolean') {
+                // Legacy support: getAllBooks(true) => approved only
+                params = { approved_only: queryParams, limit };
+            } else if (typeof queryParams === 'number') {
+                // Legacy support: getAllBooks(0, 200)
+                params = { skip: queryParams, limit, ...extraParams };
+            } else {
+                params = { ...queryParams };
+                if (typeof limit === 'number') params.limit = limit;
+                if (extraParams && Object.keys(extraParams).length) {
+                    params = { ...params, ...extraParams };
+                }
             }
 
-            const response = await apiClient.get('/api/books', { 
-                params: configParams 
+            const response = await apiClient.get('/api/books', {
+                params,
             });
             return response.data;
         } catch (error) {

@@ -24,7 +24,8 @@ from database import Base
 from models.user_model import User, Role
 from models.book_model import Book, Category, Subcategory
 from models.language_model import Language
-from models.library_management_models import Location, BookCopy, IssuedBook, DigitalAccess
+from models.location_model import Location
+from models.library_management_models import BookCopy, IssuedBook, DigitalAccess
 from models.permission_model import Permission
 from models.request_model import UploadRequest
 from models.log_model import Log

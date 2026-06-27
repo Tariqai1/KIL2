@@ -45,27 +45,34 @@ const itemVariants = {
 // 1. HELPER COMPONENTS
 // ==========================================
 
-const StatCard = ({ icon: Icon, title, value, subtext, colorClass, loading, onClick, delay }) => (
+const StatCard = ({ icon: Icon, title, value, subtext, colorClass, loading, onClick }) => (
     <motion.div
         variants={itemVariants}
-        whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+        whileHover={{ y: -4, boxShadow: "0 16px 40px -8px rgba(0,0,0,0.12)" }}
         onClick={onClick}
-        className={`relative overflow-hidden p-6 rounded-2xl border border-slate-100 bg-white cursor-pointer transition-all group`}
+        className="relative overflow-hidden p-6 rounded-2xl bg-white border border-slate-100 cursor-pointer transition-all duration-300 group shadow-sm hover:border-slate-200"
     >
-        {/* Abstract Background Shape */}
-        <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-10 transition-transform group-hover:scale-150 ${colorClass.bgShape}`}></div>
-        
+        {/* Top accent bar */}
+        <div className={`absolute top-0 left-0 right-0 h-1 rounded-t-2xl ${colorClass.accent ?? colorClass.bg}`} />
+
+        {/* Background shape */}
+        <div className={`absolute -right-8 -top-8 w-28 h-28 rounded-full opacity-[0.08] transition-transform duration-500 group-hover:scale-[1.6] group-hover:opacity-[0.12] ${colorClass.bgShape}`} />
+
         <div className="relative z-10 flex justify-between items-start">
-            <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{title}</p>
+            <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">{title}</p>
                 {loading ? (
                     <Skeleton width={80} height={36} />
                 ) : (
-                    <h3 className="text-3xl font-black text-slate-800 tracking-tight">{value}</h3>
+                    <h3 className="text-3xl font-black text-slate-800 tracking-tight tabular-nums">{value}</h3>
                 )}
-                {subtext && <p className={`text-xs mt-2 font-semibold ${colorClass.subtext}`}>{subtext}</p>}
+                {subtext && (
+                    <p className={`text-xs mt-2 font-semibold flex items-center gap-1 ${colorClass.subtext}`}>
+                        {subtext}
+                    </p>
+                )}
             </div>
-            <div className={`p-3 rounded-xl shadow-sm ${colorClass.bg} ${colorClass.text}`}>
+            <div className={`flex-shrink-0 p-3.5 rounded-2xl shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 ${colorClass.bg} ${colorClass.text}`}>
                 <Icon className="w-6 h-6" />
             </div>
         </div>

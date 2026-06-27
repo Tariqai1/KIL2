@@ -6,7 +6,8 @@ from datetime import datetime
 # --- Imports ---
 from models import library_management_models as models, user_model
 from schemas import library_management_schemas as schemas
-from auth import require_permission, get_db
+from auth import require_permission
+from database import get_db
 from utils import create_log
 
 router = APIRouter()

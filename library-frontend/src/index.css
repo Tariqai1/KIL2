@@ -1,35 +1,261 @@
 @import "tailwindcss";
 
-*{
-  font-family: "Montserrat", sans-serif;
-}
-
-/* Default Reset - Ye zaroori hai */
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
 :root {
-  line-height: 1.5;
-  font-weight: 400;
+  --primary:        #002147;
+  --primary-hover:  #003166;
+  --primary-light:  #EEF4FF;
+  --accent:         #2D89C8;
+  --accent-hover:   #1a6ea8;
+  --success:        #10b981;
+  --warning:        #f59e0b;
+  --danger:         #ef4444;
+  --surface:        #ffffff;
+  --surface-alt:    #F8FAFC;
+  --border:         #e2e8f0;
+  --text-primary:   #0f172a;
+  --text-secondary: #64748b;
+  --text-muted:     #94a3b8;
+  --shadow-sm:      0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.08);
+  --shadow-md:      0 4px 16px -2px rgb(0 0 0 / 0.10), 0 2px 6px -2px rgb(0 0 0 / 0.06);
+  --shadow-lg:      0 10px 30px -4px rgb(0 0 0 / 0.12), 0 4px 10px -4px rgb(0 0 0 / 0.08);
+  --radius-sm:      0.625rem;
+  --radius-md:      0.875rem;
+  --radius-lg:      1rem;
+  --radius-xl:      1.25rem;
 }
 
-/* Ye sabse important part hai Editor k liye */
+/* ============================================================
+   BASE RESET & TYPOGRAPHY
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 html, body, #root {
   width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
-   /* Double scrollbar hatayega */
-  display: block;   /* Flex hata kar block karna zaroori hai */
+  display: block;
+  overflow-y: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-/* Agar App.css tang kare to uske liye safety */
+body {
+  font-family: "Montserrat", "Inter", system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 400;
+  color: var(--text-primary);
+  background-color: var(--surface-alt);
+}
+
 #root {
   max-width: 100% !important;
   text-align: left !important;
 }
-html, body, #root {
-  height: 100%;
-  overflow-y: auto;
+
+/* ============================================================
+   CUSTOM SCROLLBAR
+   ============================================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ============================================================
+   SELECTION
+   ============================================================ */
+::selection {
+  background-color: rgba(0, 33, 71, 0.15);
+  color: var(--primary);
+}
+
+/* ============================================================
+   FOCUS RING (Accessibility)
+   ============================================================ */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes gradientMove {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes pulse-ring {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(45, 137, 200, 0.3); }
+  50%       { box-shadow: 0 0 0 8px rgba(45, 137, 200, 0); }
+}
+
+@keyframes scanY {
+  from { top: -10%; }
+  to   { top: 110%; }
+}
+
+@keyframes scanX {
+  from { left: -10%; }
+  to   { left: 110%; }
+}
+
+@keyframes binary {
+  0%   { opacity: 0; transform: translateY(-20px); }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(100vh); }
+}
+
+@keyframes node {
+  0%, 100% { transform: scale(1);   opacity: 0.7; }
+  50%       { transform: scale(1.6); opacity: 0.3; }
+}
+
+@keyframes star {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50%       { opacity: 1;   transform: scale(1.2); }
+}
+
+/* Utility animation classes */
+.animate-scanY  { animation: scanY  8s linear infinite; }
+.animate-scanX  { animation: scanX  12s linear infinite; }
+.animate-binary { animation: binary 4s linear infinite; }
+.animate-node   { animation: node   3s ease-in-out infinite; }
+.animate-star   { animation: star   2s ease-in-out infinite; }
+.animate-fadeInUp { animation: fadeInUp 0.45s ease-out both; }
+
+/* ============================================================
+   GLASS / CARD UTILITIES
+   ============================================================ */
+.glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.glass-dark {
+  background: rgba(0, 33, 71, 0.6);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card {
+  background: white;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* ============================================================
+   FORM ELEMENTS
+   ============================================================ */
+.input-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: #F8FAFC;
+  border: 2px solid #e2e8f0;
+  border-radius: var(--radius-lg);
+  outline: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.input-field:focus {
+  border-color: var(--primary);
+  background: white;
+  box-shadow: 0 0 0 4px rgba(0, 33, 71, 0.07);
+}
+
+.input-field::placeholder {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  background: var(--primary);
+  color: white;
+  font-weight: 700;
+  font-size: 0.875rem;
+  border-radius: var(--radius-xl);
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  box-shadow: 0 4px 14px rgba(0, 33, 71, 0.2);
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+  box-shadow: 0 6px 20px rgba(0, 33, 71, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ============================================================
+   URDU / RTL SUPPORT
+   ============================================================ */
 .font-urdu {
   font-family: 'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif;
   direction: rtl;
+  line-height: 2;
 }

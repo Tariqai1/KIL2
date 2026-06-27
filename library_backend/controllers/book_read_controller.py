@@ -51,11 +51,14 @@ def read_books(
         joinedload(book_model.Book.subcategories).joinedload(book_model.Subcategory.category),
         joinedload(book_model.Book.language)
     ).filter(book_model.Book.deleted_at.is_(None))
+
+    # 2. Approval filter: only admins can see unapproved books
+    if not current_user or not (hasattr(current_user, 'role') and current_user.role.name.lower() in ['admin', 'superadmin']):
+        query = query.filter(book_model.Book.is_approved == True)
+    elif approved_only:
+        query = query.filter(book_model.Book.is_approved == True)
     
     # Filters
-    if approved_only:
-        query = query.filter(book_model.Book.is_approved == True)
-
     if search:
         search_term = f"%{search}%"
         query = query.filter(

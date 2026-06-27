@@ -32,62 +32,6 @@ def get_book_by_id_internal(db: Session, book_id: int):
     ).first()
 
 # ==================================
-# ✅ READ OPERATIONS (Public + Auth Access)
-# ==================================
-
-@router.get("/", response_model=List[book_schema.Book]) 
-def get_books(
-    db: Session = Depends(get_db),
-    current_user: Optional[user_model.User] = Depends(get_current_user_optional) 
-):
-    """
-    Fetch all books with SMART ACCESS LOGIC.
-    """
-    
-    # 1. Fetch all active books
-    books = db.query(book_model.Book).options(
-        joinedload(book_model.Book.subcategories).joinedload(book_model.Subcategory.category),
-        joinedload(book_model.Book.language)
-    ).filter(book_model.Book.deleted_at.is_(None)).all()
-
-    # 2. Logic: User Access Permission Check
-    accessible_book_ids = set()
-
-    if current_user:
-        try:
-            approved_reqs = db.query(request_user_model.AccessRequest).filter(
-                request_user_model.AccessRequest.user_id == current_user.id,
-                request_user_model.AccessRequest.status == "approved"
-            ).all()
-            
-            accessible_book_ids = {req.book_id for req in approved_reqs}
-        except Exception as e:
-            print(f"Error fetching access requests: {e}")
-
-    # 3. Har book par Access Flag set karein
-    results = []
-    for book in books:
-        has_access = False
-        
-        # Case A: Book Restricted nahi hai -> Sabko Access hai
-        if not book.is_restricted:
-            has_access = True
-            
-        # Case B: User Admin/Superadmin hai -> Access hai
-        elif current_user and hasattr(current_user, 'role') and current_user.role.name.lower() in ['admin', 'superadmin']:
-            has_access = True
-
-        # Case C: Book Restricted hai + User ki Request Approved hai -> Access hai
-        elif current_user and book.id in accessible_book_ids:
-            has_access = True
-            
-        # ✅ Set flag for Frontend
-        setattr(book, "user_has_access", has_access)
-        results.append(book)
-
-    return results
-
-# ==================================
 # WRITE OPERATIONS (Admin Only)
 # ==================================
 
@@ -201,13 +145,27 @@ async def create_book(
     new_book.subcategories = db_subcategories
 
     db.add(new_book)
-    db.flush() 
+    db.flush()
 
-    # 7. Log
+    # 7. Create Pending Upload Approval Request
+    pending_request = request_model.UploadRequest(
+        book_id=new_book.id,
+        submitted_by_id=current_user.id,
+        status='Pending',
+        remarks='Auto-generated approval request for newly uploaded book.'
+    )
+    db.add(pending_request)
+
+    # 8. Log Actions
     create_log(
         db=db, user=current_user, action_type="BOOK_CREATED",
         description=f"Book '{new_book.title}' created (ID: {new_book.id}).",
         target_type="Book", target_id=new_book.id
+    )
+    create_log(
+        db=db, user=current_user, action_type="UPLOAD_REQUEST_CREATED",
+        description=f"Upload approval requested for Book ID {new_book.id}.",
+        target_type="UploadRequest", target_id=pending_request.id
     )
 
     db.commit()
