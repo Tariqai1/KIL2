@@ -1,5 +1,6 @@
 // src/pages/BookManagement.jsx
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Toaster, toast } from 'react-hot-toast'; // ✅ Better Notifications
 import { bookService } from '../api/bookService';
 
@@ -39,6 +40,8 @@ const TableSkeleton = () => (
 );
 
 const BookManagement = () => {
+    const navigate = useNavigate();
+
     // --- State ---
     const [allBooks, setAllBooks] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -96,8 +99,7 @@ const BookManagement = () => {
 
     // --- Actions ---
     const handleAddClick = () => {
-        setEditingBook(null);
-        setIsEditModalOpen(true);
+        navigate('/admin/books/add');
     };
 
     const handleEditClick = (book) => {

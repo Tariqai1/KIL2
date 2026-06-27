@@ -47,7 +47,7 @@ class IssuedBook(Base):
     copy_id = Column("CopyID", Integer, ForeignKey("book_copies.CopyID"), nullable=False)
     
     issue_date = Column("IssueDate", DateTime, default=datetime.utcnow, nullable=False)
-    due_date = Column("DueDate", DateTime, nullable=False)
+    due_date = Column("ReturnDate", DateTime, nullable=True)
     actual_return_date = Column("ActualReturnDate", DateTime, nullable=True)
     
     status = Column("Status", String(50), default="Issued")

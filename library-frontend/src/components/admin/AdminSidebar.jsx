@@ -6,7 +6,7 @@ import {
     ArrowLeftOnRectangleIcon, XMarkIcon, ClipboardDocumentListIcon, 
     KeyIcon, CheckBadgeIcon, TagIcon, RectangleStackIcon, 
     LanguageIcon, MapPinIcon, LockClosedIcon, UserCircleIcon, 
-    ComputerDesktopIcon, DocumentDuplicateIcon
+    ComputerDesktopIcon, DocumentDuplicateIcon, AdjustmentsHorizontalIcon
 } from '@heroicons/react/24/outline';
 
 // ✅ Custom Hooks & Services
@@ -117,6 +117,7 @@ const AdminSidebar = ({ mobileClose = () => {} }) => {
                 { name: 'Restricted Books', path: '/admin/book-permissions', icon: LockClosedIcon, requiredPerm: 'PERMISSION_VIEW' },
                 { name: 'Digital Access', path: '/admin/digital-access-history', icon: ComputerDesktopIcon, requiredPerm: 'LOGS_VIEW' },
                 { name: 'Audit Logs', path: '/admin/logs', icon: ClipboardDocumentListIcon, requiredPerm: 'LOGS_VIEW' },
+                { name: 'Homepage Settings', path: '/admin/homepage-settings', icon: AdjustmentsHorizontalIcon, requiredPerm: 'BOOK_MANAGE' },
             ]
         }
     ], [pendingCount, hasPermission]);

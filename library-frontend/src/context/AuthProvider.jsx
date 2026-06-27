@@ -9,7 +9,7 @@ import { jwtDecode } from "jwt-decode";
 import { authService } from "../api/authService";
 
 // 1. Context Create
-const AuthContext = createContext();
+export const AuthContext = createContext(null);
 
 // ✅ Standard Keys
 const ACCESS_TOKEN_KEY = "access_token";
@@ -142,6 +142,12 @@ export const AuthProvider = ({ children }) => {
 };
 
 // Custom Hook Export
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
 
-export default AuthContext;
+export default AuthProvider;

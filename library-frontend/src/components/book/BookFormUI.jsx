@@ -211,10 +211,6 @@ const SubcategorySelect = ({ subcategories, selectedIds, onChange, loading }) =>
     </div>
   );
 };
-      </AnimatePresence>
-    </div>
-  );
-};
 
 // â”€â”€â”€ Toggle switch card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const ToggleCard = ({ id, checked, onChange, disabled, icon: Icon, title, desc }) => (

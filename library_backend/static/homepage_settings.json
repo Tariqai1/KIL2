@@ -1,0 +1,34 @@
+{
+  "theme": "day",
+  "sections": {
+    "hero": {
+      "enabled": false,
+      "title": "Welcome to the future of the library"
+    },
+    "search": {
+      "enabled": false,
+      "title": "Library Search"
+    },
+    "featured": {
+      "enabled": false,
+      "title": "Library Highlights"
+    },
+    "catalog": {
+      "enabled": false,
+      "title": "Explore the Library"
+    },
+    "posts": {
+      "enabled": false,
+      "title": "Latest Announcements"
+    },
+    "donation": {
+      "enabled": false,
+      "title": "Support the Library"
+    }
+  },
+  "layout": {
+    "show_stats": true,
+    "show_trending": true,
+    "show_favorites": true
+  }
+}

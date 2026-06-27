@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { useNavigate, Link } from "react-router-dom";
@@ -252,6 +252,7 @@ const UserLibrary = () => {
   // --- STATE ---
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const activeRequestRef = useRef(0);
 
   const [sortBy, setSortBy] = useState("newest");
 
@@ -303,27 +304,47 @@ const UserLibrary = () => {
     filteredBooks,
   } = useBookSearch(books);
 
+  const fetchBooks = async (searchText = "") => {
+    const requestId = ++activeRequestRef.current;
+    setLoading(true);
+
+    try {
+      const trimmed = searchText?.trim() || "";
+      const data = await bookService.getAllBooks({
+        approved_only: true,
+        search: trimmed,
+        limit: 300,
+      });
+
+      if (requestId === activeRequestRef.current) {
+        setBooks(Array.isArray(data) ? data : data?.books || []);
+      }
+    } catch (error) {
+      console.error(error);
+      if (requestId === activeRequestRef.current) {
+        toast.error("Failed to load library.");
+      }
+    } finally {
+      if (requestId === activeRequestRef.current) {
+        setLoading(false);
+      }
+    }
+  };
+
   // --- EFFECTS ---
   useEffect(() => {
-    fetchBooks();
+    const handler = window.setTimeout(() => {
+      fetchBooks(searchTerm);
+    }, 350);
 
+    return () => window.clearTimeout(handler);
+  }, [searchTerm]);
+
+  useEffect(() => {
     const handleScroll = () => setShowScrollTop(window.scrollY > 400);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const fetchBooks = async () => {
-    setLoading(true);
-    try {
-      const data = await bookService.getAllBooks(0, 300);
-      setBooks(Array.isArray(data) ? data : data?.books || []);
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to load library.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // --- HELPERS ---
   const safeText = (v, f = "") => {
@@ -465,6 +486,7 @@ const UserLibrary = () => {
                 className="w-full pl-14 pr-12 py-4 bg-transparent text-white placeholder-slate-400/80 text-lg font-medium focus:outline-none"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                aria-label="Search books"
               />
               {searchTerm && (
                 <button
@@ -475,6 +497,9 @@ const UserLibrary = () => {
                 </button>
               )}
             </div>
+            <p className="mt-3 text-sm text-slate-400">
+              Try titles like “Quran”, “Hadith”, or an author’s name to find relevant books instantly.
+            </p>
           </motion.div>
         </div>
       </div>

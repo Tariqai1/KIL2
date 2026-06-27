@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from '../context/AuthProvider';
+import settingsService from '../api/settingsService';
 import { Toaster, toast } from "react-hot-toast";
 import {
   FaceFrownIcon,
@@ -57,6 +58,7 @@ const PublicHome = () => {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [homepageSettings, setHomepageSettings] = useState({ theme: 'aurora', sections: {}, layout: {} });
 
   // Filters
   const [sortBy, setSortBy] = useState("newest");
@@ -128,6 +130,19 @@ const PublicHome = () => {
   useEffect(() => {
     loadBooks();
   }, [loadBooks]);
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const data = await settingsService.getHomepageSettings();
+        setHomepageSettings(data || { theme: 'aurora', sections: {}, layout: {} });
+      } catch (error) {
+        console.error('Unable to load homepage settings', error);
+      }
+    };
+
+    loadSettings();
+  }, []);
 
   // --- 7) AUTO-SEARCH EFFECT (from other pages) ---
   useEffect(() => {
@@ -208,17 +223,44 @@ const PublicHome = () => {
     return sortedBooks.filter((b) => favorites.includes(b.id));
   }, [sortedBooks, showFavoritesOnly, favorites]);
 
+  const themeClasses = useMemo(() => {
+    const theme = homepageSettings?.theme || 'aurora';
+    if (theme === 'night') {
+      return {
+        shell: 'bg-slate-950 text-slate-100',
+        card: 'bg-slate-900/90 text-slate-100 border-slate-800',
+        muted: 'text-slate-400',
+        hero: 'from-slate-950 via-slate-900 to-slate-800',
+      };
+    }
+    if (theme === 'day') {
+      return {
+        shell: 'bg-[#F9FAFB] text-gray-800',
+        card: 'bg-white text-slate-800 border-slate-200',
+        muted: 'text-slate-500',
+        hero: 'from-slate-950 via-slate-900 to-zinc-950',
+      };
+    }
+    return {
+      shell: 'bg-[#F9FAFB] text-gray-800',
+      card: 'bg-slate-950/85 text-slate-100 border-slate-800',
+      muted: 'text-slate-400',
+      hero: 'from-slate-950 via-slate-900 to-zinc-950',
+    };
+  }, [homepageSettings?.theme]);
+
+  const sectionVisibility = homepageSettings?.sections || {};
+
   // --- LOADING SCREEN FOR ADMIN REDIRECT ---
   if (authLoading) return null; // Or a spinner
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] font-sans text-gray-800 animate-in fade-in duration-500">
+    <div className={`min-h-screen font-sans animate-in fade-in duration-500 ${themeClasses.shell}`}>
       <Toaster position="top-right" />
 
-      {/* Hero */}
-      <LibraryHero />
+      {sectionVisibility.hero?.enabled !== false && <LibraryHero />}
 
-      {/* Library Overview */}
+      {sectionVisibility.hero?.enabled !== false && (
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-950 px-6 py-10 shadow-[0_40px_120px_-60px_rgba(15,23,42,0.85)] sm:px-10 sm:py-14">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.18),_transparent_25%),radial-gradient(circle_at_bottom_right,_rgba(168,85,247,0.16),_transparent_22%)]" />
@@ -277,7 +319,9 @@ const PublicHome = () => {
           </div>
         </div>
       </div>
+      )}
 
+      {sectionVisibility.search?.enabled !== false && (
       <div className="max-w-7xl mx-auto px-4 pb-8">
         <div className="rounded-[2rem] border border-white/10 bg-slate-950/85 p-6 shadow-2xl">
           <div className="mb-6 text-slate-200">
@@ -298,8 +342,9 @@ const PublicHome = () => {
           />
         </div>
       </div>
+      )}
 
-      {/* Featured Section */}
+      {sectionVisibility.featured?.enabled !== false && (
       <div className="max-w-7xl mx-auto px-4 pb-12">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-6">
           <div>
@@ -341,8 +386,9 @@ const PublicHome = () => {
           </div>
         )}
       </div>
+      )}
 
-      {/* Content */}
+      {sectionVisibility.catalog?.enabled !== false && (
       <div className="max-w-7xl mx-auto px-4 py-8" id="book-grid">
         {/* Header + Stats */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8 border-b border-gray-200 pb-4">
@@ -470,6 +516,7 @@ const PublicHome = () => {
           </div>
         )}
       </div>
+      )}
 
       {/* Modals */}
       {selectedBook && (
@@ -495,21 +542,25 @@ const PublicHome = () => {
         />
       )}
 
+      {sectionVisibility.posts?.enabled !== false || sectionVisibility.donation?.enabled !== false ? (
       <div className="max-w-7xl mx-auto px-4 py-16 border-t border-gray-200">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
 
-          {/* LEFT: Posts */}
+          {sectionVisibility.posts?.enabled !== false && (
           <div className="lg:col-span-2">
             <LandingPostsPreview />
           </div>
+          )}
 
-          {/* RIGHT: Donation */}
+          {sectionVisibility.donation?.enabled !== false && (
           <div className="lg:col-span-1 lg:sticky lg:top-24 h-fit">
             <DonationPanel />
           </div>
+          )}
 
         </div>
       </div>
+      ) : null}
 
     </div>
   );

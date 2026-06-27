@@ -54,7 +54,8 @@ from controllers import (
     password_controller,
     post_controller,
     donation_controller,
-    interaction_controller
+    interaction_controller,
+    settings_controller
 )
 
 # --- Lifespan Manager (Startup/Shutdown Logic) ---
@@ -135,7 +136,7 @@ origins = [o.strip() for o in _cors_env.split(",") if o.strip()] if _cors_env el
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -248,6 +249,7 @@ api_router.include_router(book_read_controller.router, prefix="/books", tags=["B
 api_router.include_router(book_management_controller.router, prefix="/books", tags=["Books (Manage)"])
 api_router.include_router(post_controller.router, prefix="/posts", tags=["Markaz News"])
 api_router.include_router(donation_controller.router, tags=["Donation"]) # ✅ Moved INSIDE /api to fix 404
+api_router.include_router(settings_controller.router, prefix="/settings", tags=["Homepage Settings"])
 
 # Register Main Router
 app.include_router(api_router)

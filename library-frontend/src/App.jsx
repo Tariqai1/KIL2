@@ -45,8 +45,10 @@ const AccessRequests = lazy(() => import("./components/admin/AccessRequests"));
 const BookDetail = lazy(() => import("./pages/Admin/BookDetail"));
 const Profile = lazy(() => import("./pages/Profile"));
 const UserLibrary = lazy(() => import("./pages/UserLibrary"));
+const AddBookPage = lazy(() => import("./pages/AddBookPage"));
 const Authors = lazy(() => import("./pages/Authors"));
 const Publishers = lazy(() => import("./pages/Publishers"));
+const HomepageSettingsPage = lazy(() => import("./pages/Admin/HomepageSettingsPage"));
 
 // ✅ TEST / URDU EDITOR
 const UrduEditor = lazy(() => import("./components/UrduEditor/UrduEditor"));
@@ -136,6 +138,7 @@ function App() {
             <Route path="roles" element={<RoleManagement />} />
             <Route path="roles-permissions" element={<RolePermissionManagement />} />
             <Route path="books" element={<BookManagement />} />
+            <Route path="books/add" element={<AddBookPage />} />
             <Route path="books/:id" element={<BookDetail />} />
             <Route path="copies" element={<CopiesIssuing />} />
             <Route path="categories" element={<CategoryManagement />} />
@@ -147,6 +150,7 @@ function App() {
             <Route path="book-permissions" element={<RestrictedBookPermissions />} />
             <Route path="digital-access-history" element={<DigitalAccessHistory />} />
             <Route path="logs" element={<AuditLogPage />} />
+            <Route path="homepage-settings" element={<HomepageSettingsPage />} />
 
             {/* (Optional) Admin-only editor */}
             <Route path="test-editor" element={<UrduEditor />} />

@@ -5,13 +5,16 @@ import {
     BellIcon, 
     PlusIcon,           // Add Post Icon
     HeartIcon,          // Donation Icon
-    MagnifyingGlassIcon 
+    MagnifyingGlassIcon,
+    ChevronDoubleLeftIcon,
+    ChevronDoubleRightIcon
 } from '@heroicons/react/24/outline';
 import AdminSidebar from '../admin/AdminSidebar';
 
 const Layout = () => {
     // --- State & Hooks ---
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const navigate = useNavigate();
 
     return (
@@ -21,9 +24,9 @@ const Layout = () => {
                 1. SIDEBAR SECTION
                ========================================== */}
             
-            {/* Desktop Sidebar (Always Visible) */}
-            <div className="hidden lg:block lg:w-72 flex-shrink-0 transition-all duration-300">
-                <AdminSidebar />
+            {/* Desktop Sidebar (Toggleable) */}
+            <div className={`hidden lg:block flex-shrink-0 transition-all duration-300 ${isSidebarCollapsed ? 'w-0' : 'lg:w-72'}`}>
+                {!isSidebarCollapsed && <AdminSidebar />}
             </div>
 
             {/* Mobile Sidebar (Overlay & Drawer) */}
@@ -57,6 +60,18 @@ const Layout = () => {
                             className="lg:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-xl transition-colors"
                         >
                             <Bars3Icon className="w-7 h-7" />
+                        </button>
+
+                        <button
+                            onClick={() => setIsSidebarCollapsed(prev => !prev)}
+                            className="hidden lg:inline-flex p-2.5 text-slate-500 hover:bg-slate-100 rounded-xl transition-colors"
+                            title={isSidebarCollapsed ? 'Show admin panel' : 'Hide admin panel'}
+                        >
+                            {isSidebarCollapsed ? (
+                                <ChevronDoubleRightIcon className="w-5 h-5" />
+                            ) : (
+                                <ChevronDoubleLeftIcon className="w-5 h-5" />
+                            )}
                         </button>
                         
                         {/* Title or Search Bar */}
