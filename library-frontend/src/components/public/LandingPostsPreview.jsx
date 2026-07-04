@@ -5,6 +5,7 @@ import {
     CalendarDaysIcon,
     ArrowLongRightIcon,
     PhotoIcon,
+    SparklesIcon,
 } from "@heroicons/react/24/outline";
 import postService from "../../api/postService";
 import { useNavigate } from "react-router-dom";
@@ -41,79 +42,99 @@ const LandingPostsPreview = () => {
                 : `${API_BASE_URL}${p.startsWith("/") ? p : `/${p}`}`;
 
     return (
-        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-5">
-            {/* Header */}
-            <div className="">
-
-                <div className="flex items-center justify-between mb-8">
-                    <h2 className="text-3xl font-extrabold text-[#002147]">
+        <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-cyan-50/70 p-4 shadow-[0_20px_60px_-35px_rgba(15,23,42,0.25)] sm:p-6 lg:p-7">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-cyan-700">
+                        <SparklesIcon className="h-4 w-4" />
+                        Latest updates
+                    </div>
+                    <h2 className="text-2xl font-extrabold text-[#002147] sm:text-3xl">
                         Latest Announcements
                     </h2>
-                    <button
-                        onClick={() => navigate("/posts")}
-                        className="text-sm font-bold text-blue-700 flex items-center gap-2"
-                    >
-                        View All
-                        <ArrowLongRightIcon className="w-5 h-5" />
-                    </button>
+                    <p className="mt-2 max-w-2xl text-sm text-slate-600 sm:text-base">
+                        Stay informed with the newest library news, events, and important updates.
+                    </p>
                 </div>
-
-                {/* Swiper */}
-                <Swiper
-                    modules={[Autoplay]}
-                    slidesPerView={1}
-                    loop
-                    autoplay={{
-                        delay: 4000,
-                        disableOnInteraction: false,
-                    }}
-                    className="rounded-2xl"
+                <button
+                    onClick={() => navigate("/posts")}
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50"
                 >
-                    {posts.map((post, i) => {
-                        const imageUrl = getFileUrl(post?.file_url);
+                    View All
+                    <ArrowLongRightIcon className="h-5 w-5" />
+                </button>
+            </div>
 
-                        return (
-                            <SwiperSlide key={post.id || i}>
-                                <div
-                                    onClick={() => setSelectedPost(post)}
-                                    className="cursor-pointer bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm w-full">
-                                    {/* Image */}
-                                    <div className="h-100 bg-slate-100 overflow-hidden">
-                                        {imageUrl ? (
-                                            <img
-                                                src={imageUrl}
-                                                alt={post?.title}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="h-full flex items-center justify-center">
-                                                <PhotoIcon className="w-16 h-16 text-slate-300" />
+            <div className="mt-6">
+                {posts.length > 0 ? (
+                    <Swiper
+                        modules={[Autoplay]}
+                        slidesPerView={1}
+                        loop={posts.length > 1}
+                        autoplay={{
+                            delay: 4000,
+                            disableOnInteraction: false,
+                        }}
+                        breakpoints={{
+                            640: { slidesPerView: 1 },
+                            1024: { slidesPerView: 1 },
+                        }}
+                        className="!pb-2"
+                    >
+                        {posts.map((post, i) => {
+                            const imageUrl = getFileUrl(post?.file_url);
+
+                            return (
+                                <SwiperSlide key={post.id || i}>
+                                    <div
+                                        onClick={() => setSelectedPost(post)}
+                                        className="group w-full cursor-pointer overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                                    >
+                                        <div className="relative aspect-[16/10] overflow-hidden bg-slate-100 sm:aspect-[16/8]">
+                                            {imageUrl ? (
+                                                <img
+                                                    src={imageUrl}
+                                                    alt={post?.title}
+                                                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                                                />
+                                            ) : (
+                                                <div className="flex h-full items-center justify-center">
+                                                    <PhotoIcon className="h-16 w-16 text-slate-300" />
+                                                </div>
+                                            )}
+                                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 to-transparent p-4 sm:p-5">
+                                                <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-white backdrop-blur">
+                                                    Announcement
+                                                </span>
                                             </div>
-                                        )}
-                                    </div>
-
-                                    {/* Content */}
-                                    <div className="p-8">
-                                        <div className="text-xs text-slate-500 flex items-center gap-2 mb-2">
-                                            <CalendarDaysIcon className="w-4 h-4" />
-                                            {post?.created_at
-                                                ? new Date(post.created_at).toLocaleDateString()
-                                                : "N/A"}
                                         </div>
 
-                                        <h3 className="text-2xl font-bold text-slate-800 mb-4">
-                                            {post?.title || "Untitled Announcement"}
-                                        </h3>
+                                        <div className="p-5 sm:p-6">
+                                            <div className="mb-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                                                <CalendarDaysIcon className="h-4 w-4" />
+                                                {post?.created_at
+                                                    ? new Date(post.created_at).toLocaleDateString()
+                                                    : "N/A"}
+                                            </div>
 
-                                        <p className="text-slate-600 text-sm leading-relaxed line-clamp-4">
-                                            {post?.content || "Click to read full announcement"}
-                                        </p>
+                                            <h3 className="mb-3 text-xl font-bold text-slate-800 sm:text-2xl">
+                                                {post?.title || "Untitled Announcement"}
+                                            </h3>
+
+                                            <p className="text-sm leading-6 text-slate-600 line-clamp-3 sm:text-[15px]">
+                                                {post?.content || "Click to read full announcement"}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
-                            </SwiperSlide>
-                        );
-                    })}
-                </Swiper>
+                                </SwiperSlide>
+                            );
+                        })}
+                    </Swiper>
+                ) : (
+                    <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-white/80 p-8 text-center text-sm text-slate-500">
+                        No announcements yet. Please check back soon.
+                    </div>
+                )}
             </div>
 
             <AnimatePresence>

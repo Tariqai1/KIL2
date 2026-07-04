@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { SparklesIcon, EyeIcon, EyeSlashIcon, MoonIcon, SunIcon, PaintBrushIcon } from '@heroicons/react/24/outline';
+import { SparklesIcon, EyeIcon, EyeSlashIcon, MoonIcon, SunIcon, PaintBrushIcon, LanguageIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
 import settingsService from '../../api/settingsService';
 
 const defaultSections = [
@@ -14,6 +14,9 @@ const defaultSections = [
 const HomepageCustomizer = () => {
   const [settings, setSettings] = useState({
     theme: 'aurora',
+    language: 'en',
+    hero_badge: '',
+    site_title: '',
     sections: {},
     layout: {},
   });
@@ -56,6 +59,37 @@ const HomepageCustomizer = () => {
 
   const updateTheme = (theme) => {
     setSettings((prev) => ({ ...prev, theme }));
+  };
+
+  const updateLanguage = (language) => {
+    setSettings((prev) => ({ ...prev, language }));
+  };
+
+  const updateContentField = (field, value) => {
+    setSettings((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const updateLayoutField = (field, value) => {
+    setSettings((prev) => ({
+      ...prev,
+      layout: {
+        ...prev.layout,
+        [field]: value,
+      },
+    }));
+  };
+
+  const updateSectionField = (sectionKey, field, value) => {
+    setSettings((prev) => ({
+      ...prev,
+      sections: {
+        ...prev.sections,
+        [sectionKey]: {
+          ...(prev.sections?.[sectionKey] || {}),
+          [field]: value,
+        },
+      },
+    }));
   };
 
   const handleSave = async () => {
@@ -114,6 +148,109 @@ const HomepageCustomizer = () => {
                   </button>
                 );
               })}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+              <LanguageIcon className="h-5 w-5 text-amber-600" />
+              Language & Branding
+            </div>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <label className="text-sm text-slate-600">
+                <span className="mb-1 block font-medium text-slate-700">Interface Language</span>
+                <select value={settings.language || 'en'} onChange={(e) => updateLanguage(e.target.value)} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700">
+                  <option value="en">English</option>
+                  <option value="ur">Urdu</option>
+                  <option value="ar">Arabic</option>
+                </select>
+              </label>
+              <label className="text-sm text-slate-600">
+                <span className="mb-1 block font-medium text-slate-700">Site Title</span>
+                <input value={settings.site_title || ''} onChange={(e) => updateContentField('site_title', e.target.value)} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700" placeholder="Kokan Library" />
+              </label>
+            </div>
+            <label className="mt-4 block text-sm text-slate-600">
+              <span className="mb-1 block font-medium text-slate-700">Hero Badge / Tagline</span>
+              <input value={settings.hero_badge || ''} onChange={(e) => updateContentField('hero_badge', e.target.value)} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700" placeholder="Adaptive Knowledge Grid" />
+            </label>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+              <PencilSquareIcon className="h-5 w-5 text-violet-600" />
+              Section Content
+            </div>
+            <div className="mt-4 space-y-4">
+              {sectionEntries.map((section) => (
+                <div key={section.key} className="rounded-2xl border border-slate-200 bg-white p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-slate-800">{section.label}</p>
+                      <p className="text-sm text-slate-500">{section.description}</p>
+                    </div>
+                    <div className="text-sm text-slate-500">{section.enabled ? 'Visible' : 'Hidden'}</div>
+                  </div>
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    <label className="text-sm text-slate-600">
+                      <span className="mb-1 block font-medium text-slate-700">Heading</span>
+                      <input value={settings.sections?.[section.key]?.title || ''} onChange={(e) => updateSectionField(section.key, 'title', e.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-700" placeholder={section.label} />
+                    </label>
+                    <label className="text-sm text-slate-600">
+                      <span className="mb-1 block font-medium text-slate-700">Subheading</span>
+                      <input value={settings.sections?.[section.key]?.subtitle || ''} onChange={(e) => updateSectionField(section.key, 'subtitle', e.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-700" placeholder="Optional subheading" />
+                    </label>
+                  </div>
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    <label className="text-sm text-slate-600">
+                      <span className="mb-1 block font-medium text-slate-700">Section Order</span>
+                      <input type="number" value={settings.sections?.[section.key]?.order ?? 0} onChange={(e) => updateSectionField(section.key, 'order', Number(e.target.value))} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-700" />
+                    </label>
+                    {section.key === 'hero' ? (
+                      <label className="text-sm text-slate-600">
+                        <span className="mb-1 block font-medium text-slate-700">Primary CTA Label</span>
+                        <input value={settings.sections?.hero?.primary_cta_label || ''} onChange={(e) => updateSectionField('hero', 'primary_cta_label', e.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-700" placeholder="Explore the catalog" />
+                      </label>
+                    ) : null}
+                  </div>
+                  {section.key === 'hero' ? (
+                    <div className="mt-3 grid gap-3 md:grid-cols-2">
+                      <label className="text-sm text-slate-600">
+                        <span className="mb-1 block font-medium text-slate-700">Primary CTA URL</span>
+                        <input value={settings.sections?.hero?.primary_cta_url || ''} onChange={(e) => updateSectionField('hero', 'primary_cta_url', e.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-700" placeholder="/books" />
+                      </label>
+                      <label className="text-sm text-slate-600">
+                        <span className="mb-1 block font-medium text-slate-700">Secondary CTA URL</span>
+                        <input value={settings.sections?.hero?.secondary_cta_url || ''} onChange={(e) => updateSectionField('hero', 'secondary_cta_url', e.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-700" placeholder="/contact" />
+                      </label>
+                    </div>
+                  ) : null}
+                  <label className="mt-3 block text-sm text-slate-600">
+                    <span className="mb-1 block font-medium text-slate-700">Paragraph</span>
+                    <textarea value={settings.sections?.[section.key]?.description || ''} onChange={(e) => updateSectionField(section.key, 'description', e.target.value)} rows={2} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-700" placeholder="Describe this section" />
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+              <EyeIcon className="h-5 w-5 text-violet-600" />
+              Layout Extras
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {[
+                { key: 'show_stats', label: 'Show hero stats cards' },
+                { key: 'show_search_strip', label: 'Show search strip' },
+                { key: 'show_featured_books', label: 'Show featured books panel' },
+                { key: 'show_donation_panel', label: 'Show donation panel' },
+              ].map((item) => (
+                <label key={item.key} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700">
+                  <span>{item.label}</span>
+                  <input type="checkbox" checked={Boolean(settings.layout?.[item.key])} onChange={(e) => updateLayoutField(item.key, e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500" />
+                </label>
+              ))}
             </div>
           </div>
 

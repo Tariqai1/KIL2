@@ -1,16 +1,16 @@
 {
-  "theme": "day",
+  "theme": "aurora",
   "sections": {
     "hero": {
-      "enabled": false,
-      "title": "Welcome to the future of the library"
+      "enabled": true,
+      "title": "Welcome to the future of the library testING "
     },
     "search": {
-      "enabled": false,
+      "enabled": true,
       "title": "Library Search"
     },
     "featured": {
-      "enabled": false,
+      "enabled": true,
       "title": "Library Highlights"
     },
     "catalog": {
@@ -18,17 +18,23 @@
       "title": "Explore the Library"
     },
     "posts": {
-      "enabled": false,
+      "enabled": true,
       "title": "Latest Announcements"
     },
     "donation": {
-      "enabled": false,
+      "enabled": true,
       "title": "Support the Library"
     }
   },
   "layout": {
     "show_stats": true,
     "show_trending": true,
-    "show_favorites": true
-  }
+    "show_favorites": true,
+    "show_featured_books": true,
+    "show_search_strip": true,
+    "show_donation_panel": true
+  },
+  "language": "ur",
+  "hero_badge": "tARIQUE",
+  "site_title": ""
 }

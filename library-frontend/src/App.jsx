@@ -66,7 +66,17 @@ const ADMIN_ALLOWED_ROLES = [
 // ================= HELPERS =================
 const ScrollToTop = () => {
   const { pathname } = useLocation();
-  useEffect(() => window.scrollTo(0, 0), [pathname]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const timeoutId = window.setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [pathname]);
+
   return null;
 };
 

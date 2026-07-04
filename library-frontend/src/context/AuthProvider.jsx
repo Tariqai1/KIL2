@@ -57,18 +57,22 @@ export const AuthProvider = ({ children }) => {
    *   user: {...}
    * }
    */
-  const login = useCallback((authData) => {
-    if (!authData?.access_token || !authData?.user) {
-      console.error("Invalid login data received", authData);
+  const login = useCallback((authDataOrUser, maybeToken) => {
+    const normalizedPayload =
+      authDataOrUser?.access_token || authDataOrUser?.user
+        ? authDataOrUser
+        : { access_token: maybeToken, user: authDataOrUser };
+
+    const token = normalizedPayload?.access_token;
+    const userData = normalizedPayload?.user || normalizedPayload;
+
+    if (!token || !userData) {
+      console.error("Invalid login data received", authDataOrUser, maybeToken);
       return;
     }
 
-    const token = authData.access_token;
-    const userData = authData.user;
-
     // ✅ Save into correct keys (local + session safe)
     try {
-      // keep localStorage as default
       localStorage.setItem(ACCESS_TOKEN_KEY, token);
       localStorage.setItem(USER_KEY, JSON.stringify(userData));
     } catch (e) {

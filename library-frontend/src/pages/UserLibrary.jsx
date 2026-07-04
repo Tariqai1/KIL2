@@ -11,6 +11,7 @@ import useAuth from "../hooks/useAuth";
 // --- Components ---
 import RestrictedAccessFlow from "../components/book/RestrictedAccessFlow";
 import SuccessScreen from "../components/RestrictedAccess/SuccessScreen";
+import LibrarySearchStrip from "../components/public/LibrarySearchStrip";
 import { getBookCover } from "../utils/cover";
 
 // --- Icons (Outline - for UI) ---
@@ -476,30 +477,17 @@ const UserLibrary = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="relative max-w-2xl mx-auto mt-8"
+            className="mx-auto mt-8 max-w-4xl"
           >
-            <div className="relative flex items-center bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl">
-              <MagnifyingGlassIcon className="absolute left-5 h-6 w-6 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search books, authors, or topics..."
-                className="w-full pl-14 pr-12 py-4 bg-transparent text-white placeholder-slate-400/80 text-lg font-medium focus:outline-none"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                aria-label="Search books"
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="absolute right-4 p-1 text-slate-400 hover:text-white"
-                >
-                  <XMarkIcon className="w-5 h-5" />
-                </button>
-              )}
-            </div>
-            <p className="mt-3 text-sm text-slate-400">
-              Try titles like “Quran”, “Hadith”, or an author’s name to find relevant books instantly.
-            </p>
+            <LibrarySearchStrip
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              title="Library Search"
+              subtitle="Search the library collection"
+              description="Search by title, author, language, category, and deep-book content with a premium discovery experience."
+              placeholder="Search by title, author, or ISBN..."
+              showHint={true}
+            />
           </motion.div>
         </div>
       </div>
