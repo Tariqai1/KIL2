@@ -114,10 +114,20 @@ async def add_process_time_header(request: Request, call_next):
     return response
 
 # 2. Trusted Host (Security Header)
-TRUSTED_HOSTS = os.getenv("TRUSTED_HOSTS", "localhost,127.0.0.1").split(",")
+trusted_hosts_env = os.getenv("TRUSTED_HOSTS", "")
+trusted_hosts = [host.strip() for host in trusted_hosts_env.split(",") if host.strip()]
+if not trusted_hosts:
+    trusted_hosts = [
+        "localhost",
+        "127.0.0.1",
+        "kil2.onrender.com",
+        "*.onrender.com",
+        "*.vercel.app",
+        "*.netlify.app",
+    ]
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=TRUSTED_HOSTS
+    allowed_hosts=trusted_hosts
 )
 
 # 3. GZip Compression (Faster Responses)
