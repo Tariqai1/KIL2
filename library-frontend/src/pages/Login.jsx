@@ -54,6 +54,9 @@ const ADMIN_ROLES = new Set([
   "staff",
 ]);
 
+const GOOGLE_CLIENT_ID = (import.meta.env.VITE_GOOGLE_CLIENT_ID || "").trim();
+const GOOGLE_AUTH_ENABLED = Boolean(GOOGLE_CLIENT_ID);
+
 const MAX_ATTEMPTS = 3;
 const COOLDOWN_MS = 30_000;
 
@@ -126,6 +129,32 @@ const FeatureCard = ({ emoji, title, desc }) => (
     </div>
   </div>
 );
+
+const GoogleLoginButton = ({ disabled, loading, onGoogleSuccess, onGoogleError }) => {
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      await onGoogleSuccess(tokenResponse);
+    },
+    onError: () => onGoogleError(),
+  });
+
+  return (
+    <button
+      onClick={() => !disabled && googleLogin()}
+      disabled={disabled}
+      type="button"
+      aria-label="Continue with Google"
+      className="w-full flex items-center justify-center gap-3 bg-white border-2 border-slate-200 text-slate-700 font-semibold py-3.5 rounded-2xl hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] transition-all duration-200 group disabled:opacity-50 disabled:pointer-events-none mb-5 shadow-sm focus:outline-none focus:ring-4 focus:ring-[#002147]/15"
+    >
+      {loading ? (
+        <span className="w-5 h-5 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" aria-hidden="true" />
+      ) : (
+        <GoogleIcon />
+      )}
+      <span>{loading ? "Connecting…" : "Continue with Google"}</span>
+    </button>
+  );
+};
 
 // ═══════════════════════════════════════════════════════════
 // MAIN COMPONENT
@@ -267,31 +296,30 @@ const Login = () => {
   };
 
   // ── Google OAuth ──────────────────────────────────────────
-  const googleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      setGoogleLoading(true);
-      const toastId = toast.loading("Authenticating with Google…");
-      try {
-        const res = await apiClient.post("/api/auth/google", {
-          token: tokenResponse.access_token,
-        });
-        const { access_token, user } = res.data ?? {};
-        if (!access_token || !user) throw new Error("Invalid server response.");
-        toast.success("Google Sign-In Successful!", { id: toastId });
-        handleAuthSuccess(user, access_token);
-      } catch (err) {
-        const msg = err?.response?.data?.detail || "Google login failed. Try again.";
-        toast.error(msg, { id: toastId });
-        triggerShake();
-      } finally {
-        setGoogleLoading(false);
-      }
-    },
-    onError: () => {
-      toast.error("Google Sign-In popup closed or failed.");
+  const handleGoogleSuccess = async (tokenResponse) => {
+    setGoogleLoading(true);
+    const toastId = toast.loading("Authenticating with Google…");
+    try {
+      const res = await apiClient.post("/api/auth/google", {
+        token: tokenResponse.access_token,
+      });
+      const { access_token, user } = res.data ?? {};
+      if (!access_token || !user) throw new Error("Invalid server response.");
+      toast.success("Google Sign-In Successful!", { id: toastId });
+      handleAuthSuccess(user, access_token);
+    } catch (err) {
+      const msg = err?.response?.data?.detail || "Google login failed. Try again.";
+      toast.error(msg, { id: toastId });
       triggerShake();
-    },
-  });
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    toast.error("Google Sign-In popup closed or failed.");
+    triggerShake();
+  };
 
   // ── Input handler ─────────────────────────────────────────
   const handleChange = (e) => {
@@ -393,20 +421,24 @@ const Login = () => {
             )}
 
             {/* Google */}
-            <button
-              onClick={() => !isDisabled && googleLogin()}
-              disabled={isDisabled}
-              type="button"
-              aria-label="Continue with Google"
-              className="w-full flex items-center justify-center gap-3 bg-white border-2 border-slate-200 text-slate-700 font-semibold py-3.5 rounded-2xl hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] transition-all duration-200 group disabled:opacity-50 disabled:pointer-events-none mb-5 shadow-sm focus:outline-none focus:ring-4 focus:ring-[#002147]/15"
-            >
-              {googleLoading ? (
-                <span className="w-5 h-5 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" aria-hidden="true" />
-              ) : (
+            {GOOGLE_AUTH_ENABLED ? (
+              <GoogleLoginButton
+                disabled={isDisabled}
+                loading={googleLoading}
+                onGoogleSuccess={handleGoogleSuccess}
+                onGoogleError={handleGoogleError}
+              />
+            ) : (
+              <button
+                disabled
+                type="button"
+                aria-label="Google login unavailable"
+                className="w-full flex items-center justify-center gap-3 bg-slate-100 border-2 border-slate-200 text-slate-500 font-semibold py-3.5 rounded-2xl mb-5 shadow-sm cursor-not-allowed"
+              >
                 <GoogleIcon />
-              )}
-              <span>{googleLoading ? "Connecting…" : "Continue with Google"}</span>
-            </button>
+                <span>Google login unavailable</span>
+              </button>
+            )}
 
             {/* Divider */}
             <div className="flex items-center gap-4 mb-5" aria-hidden="true">

@@ -22,6 +22,7 @@ const UserForm = ({
     // --- Safety Checks ---
     const safeOnError = onError || ((msg) => console.error("Error:", msg));
     const safeOnSuccess = onSubmitSuccess || (() => console.log("Success"));
+    const safeOnCancel = onCancel || (() => {});
 
     // --- State ---
     const getInitialState = useCallback(() => ({
@@ -29,7 +30,8 @@ const UserForm = ({
         email: initialData?.email || '',
         full_name: initialData?.full_name || initialData?.fullName || '', 
         password: '', 
-        role_id: initialData?.role?.id || initialData?.role_id || '', 
+        // Normalize role id to string to avoid controlled/uncontrolled warnings
+        role_id: initialData?.role?.id != null ? String(initialData.role.id) : (initialData?.role_id != null ? String(initialData.role_id) : ''),
         status: initialData?.status || 'Active', 
     }), [initialData]);
 
@@ -51,7 +53,8 @@ const UserForm = ({
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        if (onError) onError(null); 
+        // Clear previous errors via safe handler
+        safeOnError(null);
         
         // --- Validation ---
         if (!formData.username || !formData.email || !formData.role_id) {
@@ -138,10 +141,18 @@ const UserForm = ({
     const labelClass = "block text-sm font-medium text-gray-700 mb-1";
     const buttonClass = `inline-flex items-center justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50`;
     const primaryButtonClass = `${buttonClass} bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500`;
-    const secondaryButtonClass = `${buttonClass} bg-white hover:bg-gray-50 text-gray-700 border-gray-300 focus:ring-indigo-500`;
+    const secondaryButtonClass = `inline-flex items-center justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50`;
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4"> 
+            {/* Show User ID in User Information section when available */}
+            {initialData?.id && (
+                <div>
+                    <label className={labelClass}>User ID</label>
+                    <input type="text" value={String(initialData.id)} readOnly className={`${inputClass} bg-gray-100`} />
+                </div>
+            )}
+
             <div className="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-2">
                 
                 {/* Username */}
@@ -196,7 +207,7 @@ const UserForm = ({
                 {(!isEditing || formData.password) && (
                     <div className="sm:col-span-1">
                         <label htmlFor="passwordConfirm" className={labelClass}>
-                            Confirm Password  hahdsdhskhd*
+                            Confirm Password *
                         </label>
                         <input 
                             type="password" id="passwordConfirm" name="passwordConfirm" 
@@ -217,7 +228,7 @@ const UserForm = ({
                     >
                         <option value="">Select Role</option>
                         {roles.map(role => (
-                            <option key={role.id} value={role.id}>{role.name}</option>
+                            <option key={role.id} value={String(role.id)}>{role.name}</option>
                         ))}
                     </select>
                 </div>
@@ -243,7 +254,7 @@ const UserForm = ({
                 <button 
                     type="button" 
                     className={secondaryButtonClass} 
-                    onClick={onCancel} 
+                    onClick={safeOnCancel} 
                     disabled={isLoading}
                 >
                     Cancel

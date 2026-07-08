@@ -22,6 +22,8 @@ const LatestPosts = () => {
 
   // For image error handling (card + modal)
   const [brokenImages, setBrokenImages] = useState({}); // { [postId]: true }
+  const [imageScale, setImageScale] = useState(1);
+  const [textSize, setTextSize] = useState(16);
 
   useEffect(() => {
     fetchPosts();
@@ -284,16 +286,34 @@ const LatestPosts = () => {
                   const fileType = getFileType(fileUrl);
                   const isBroken = brokenImages[selectedPost?.id] === true;
 
-                  // IMAGE FULL VIEW
+                  // IMAGE FULL VIEW (with zoom controls)
                   if (fileUrl && fileType === "image" && !isBroken) {
                     return (
-                      <div className="w-full bg-black/5">
-                        <img
-                          src={fileUrl}
-                          alt={selectedPost?.title || "Post Image"}
-                          className="w-full h-auto max-h-[75vh] object-contain mx-auto"
-                          onError={() => handleImageFail(selectedPost?.id)}
-                        />
+                      <div className="w-full bg-black/5 flex flex-col items-center">
+                        <div className="w-full flex items-center justify-center py-3 gap-2">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setImageScale(s => Math.max(0.5, s - 0.25)); }}
+                            className="px-3 py-1 rounded bg-white/90 border"
+                          >-</button>
+                          <span className="text-sm font-bold text-slate-700">Zoom</span>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setImageScale(s => Math.min(3, s + 0.25)); }}
+                            className="px-3 py-1 rounded bg-white/90 border"
+                          >+</button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setImageScale(1); }}
+                            className="px-3 py-1 rounded bg-white/90 border ml-2"
+                          >Reset</button>
+                        </div>
+                        <div className="w-full bg-black/5 overflow-auto flex items-center justify-center">
+                          <img
+                            src={fileUrl}
+                            alt={selectedPost?.title || "Post Image"}
+                            style={{ transform: `scale(${imageScale})`, transition: 'transform 150ms ease' }}
+                            className="max-h-[75vh] object-contain mx-auto"
+                            onError={() => handleImageFail(selectedPost?.id)}
+                          />
+                        </div>
                       </div>
                     );
                   }
@@ -347,7 +367,14 @@ const LatestPosts = () => {
                   {selectedPost?.title || "Untitled Announcement"}
                 </h2>
 
-                <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed whitespace-pre-wrap text-base">
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="text-sm text-slate-500">Text size</span>
+                  <button onClick={() => setTextSize(s => Math.max(12, s - 2))} className="px-2 py-1 bg-slate-100 rounded">A-</button>
+                  <button onClick={() => setTextSize(s => Math.min(28, s + 2))} className="px-2 py-1 bg-slate-100 rounded">A+</button>
+                  <button onClick={() => setTextSize(16)} className="px-2 py-1 bg-slate-100 rounded">Reset</button>
+                </div>
+
+                <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed whitespace-pre-wrap" style={{ fontSize: `${textSize}px` }}>
                   {selectedPost?.content || "No details available."}
                 </div>
               </div>

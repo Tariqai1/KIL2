@@ -71,29 +71,28 @@ const UserLibrary = () => {
                             FILTERS
                         </div>
                         
-                        {/* Language Filter */}
+                        {/* Language Filter (dynamic from data) */}
                         <select 
                             className="bg-slate-50 border-none rounded-lg px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-emerald-500"
                             value={selectedLanguage}
                             onChange={(e) => setSelectedLanguage(e.target.value)}
                         >
                             <option value="all">All Languages</option>
-                            <option value="english">English</option>
-                            <option value="hindi">Hindi (हिंदी)</option>
-                            <option value="arabic">Arabic (العربية)</option>
-                            <option value="urdu">Urdu (اردو)</option>
+                            {[...new Set(books.map(b => (b.language && (b.language.name || b.language)) || 'Unknown'))].map((lang) => (
+                                <option key={lang} value={String(lang).toLowerCase()}>{lang}</option>
+                            ))}
                         </select>
 
-                        {/* Category Filter */}
+                        {/* Category Filter (dynamic from data) */}
                         <select 
                             className="bg-slate-50 border-none rounded-lg px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-emerald-500"
                             value={selectedCategory}
                             onChange={(e) => setSelectedCategory(e.target.value)}
                         >
                             <option value="all">All Categories</option>
-                            <option value="islamic studies">Islamic Studies</option>
-                            <option value="literature">Literature</option>
-                            <option value="science & tech">Science & Tech</option>
+                            {[...new Set(books.flatMap(b => (b.subcategories || []).map(s => s.name || s).concat(b.category ? (b.category.name || b.category) : [])))].map((cat) => (
+                                <option key={cat} value={String(cat).toLowerCase()}>{cat}</option>
+                            ))}
                         </select>
                     </div>
 

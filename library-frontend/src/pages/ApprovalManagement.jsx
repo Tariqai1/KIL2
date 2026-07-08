@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
+import PdfViewer from '../components/book/PdfViewer';
 
 // --- Icons ---
 import { 
@@ -424,10 +425,15 @@ const ApprovalManagement = () => {
                             
                             <div className="flex-1 bg-slate-200 relative">
                                 {getStaticUrl(previewBook.book?.pdf_file || previewBook.book?.pdf_url) ? (
-                                    <iframe 
-                                        src={getStaticUrl(previewBook.book?.pdf_file || previewBook.book?.pdf_url)} 
-                                        className="w-full h-full" 
-                                        title="PDF Preview"
+                                    <PdfViewer
+                                        pdfUrl={getStaticUrl(previewBook.book?.pdf_file || previewBook.book?.pdf_url)}
+                                        viewMode="single"
+                                        scale={1}
+                                        setScale={() => {}}
+                                        setTotalPages={() => {}}
+                                        setCurrentPage={() => {}}
+                                        totalPages={1}
+                                        currentPage={1}
                                     />
                                 ) : (
                                     <div className="flex items-center justify-center h-full text-slate-400 gap-2">

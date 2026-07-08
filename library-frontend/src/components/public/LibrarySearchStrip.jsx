@@ -36,7 +36,10 @@ const LibrarySearchStrip = ({
   subtitle = "Search the library collection",
   description = "Find books, authors, publishers and smart recommendations instantly.",
   showHint = true,
-  placeholder = "Search books, authors, publishers..."
+  placeholder = "Search books, authors, publishers...",
+  enableVoice = true,
+  enableDeepSearch = true,
+  enableSuggestions = true,
 }) => {
   const [localValue, setLocalValue] = useState(searchTerm);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -138,7 +141,7 @@ const LibrarySearchStrip = ({
                 <p className="mt-2 max-w-2xl text-sm text-slate-300">{description}</p>
               </div>
               <div className="rounded-full border border-white/15 bg-white/10 px-3 py-2 text-sm text-slate-200 backdrop-blur">
-                Ctrl + K • Voice Search • Deep Search
+                Ctrl + K {enableVoice ? '• Voice Search' : ''} {enableDeepSearch ? '• Deep Search' : ''}
               </div>
             </div>
           </div>
@@ -186,34 +189,38 @@ const LibrarySearchStrip = ({
               </AnimatePresence>
 
               {/* Voice Search Button */}
-              <button
-                onClick={startVoiceSearch}
-                title="Voice Search"
-                className={`p-2 rounded-full mr-1 transition-colors ${
-                  listening ? "bg-red-100 animate-pulse text-red-600" : "hover:bg-gray-200 text-gray-600"
-                }`}
-              >
-                <MicrophoneIcon className="w-5 h-5" />
-              </button>
+              {enableVoice ? (
+                <button
+                  onClick={startVoiceSearch}
+                  title="Voice Search"
+                  className={`p-2 rounded-full mr-1 transition-colors ${
+                    listening ? "bg-red-100 animate-pulse text-red-600" : "hover:bg-gray-200 text-gray-600"
+                  }`}
+                >
+                  <MicrophoneIcon className="w-5 h-5" />
+                </button>
+              ) : null}
 
               {/* ✅ NAYA: Deep Search Button with Loading State */}
-              <button
-                onClick={() => setIsDeepSearchOpen(true)}
-                title="Deep Search inside Books (Ctrl+Shift+F)"
-                className="p-2 rounded-full hover:bg-indigo-100 hover:text-indigo-600 text-gray-600 mr-2 transition-colors border border-transparent hover:border-indigo-200"
-              >
-                {isFetchingBook ? (
-                  <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <DocumentTextIcon className="w-5 h-5" />
-                )}
-              </button>
+              {enableDeepSearch ? (
+                <button
+                  onClick={() => setIsDeepSearchOpen(true)}
+                  title="Deep Search inside Books (Ctrl+Shift+F)"
+                  className="p-2 rounded-full hover:bg-indigo-100 hover:text-indigo-600 text-gray-600 mr-2 transition-colors border border-transparent hover:border-indigo-200"
+                >
+                  {isFetchingBook ? (
+                    <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <DocumentTextIcon className="w-5 h-5" />
+                  )}
+                </button>
+              ) : null}
 
             </motion.div>
 
             {/* ================= SUGGESTIONS ================= */}
             <AnimatePresence>
-              {showSuggestions && localValue && suggestions.length > 0 && (
+              {enableSuggestions && showSuggestions && localValue && suggestions.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}

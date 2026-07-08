@@ -133,7 +133,7 @@ const Layout = () => {
                 </header>
 
                 {/* --- PAGE CONTENT (Outlet) --- */}
-                <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-8 scroll-smooth">
+                <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-2 scroll-smooth">
                     
                     {/* Mobile FAB: Add Post (Only on small screens) */}
                     <button 

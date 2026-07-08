@@ -336,16 +336,7 @@ const BookDetailsModal = ({
                       )}
                       
                       {/* Optional: Open PDF externally */}
-                      {pdfUrl && (
-                         <a
-                           href={pdfUrl}
-                           target="_blank"
-                           rel="noopener noreferrer"
-                           className="flex-1 py-3.5 px-6 rounded-2xl font-extrabold transition-all flex items-center justify-center gap-2 border bg-white text-slate-800 hover:bg-slate-50 border-slate-200"
-                         >
-                           <ArrowTopRightOnSquareIcon className="w-5 h-5" /> Open
-                         </a>
-                      )}
+                      {/* External 'Open' removed for consistent in-app reading experience */}
                     </div>
                   )}
                 </div>

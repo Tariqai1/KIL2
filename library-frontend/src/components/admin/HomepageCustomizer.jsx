@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { SparklesIcon, EyeIcon, EyeSlashIcon, MoonIcon, SunIcon, PaintBrushIcon, LanguageIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
 import settingsService from '../../api/settingsService';
+import useAuth from '../../hooks/useAuth';
+import GlobalSearchModal from '../book/GlobalSearchModal';
+import { bookService } from '../../api/bookService';
 
 const defaultSections = [
   { key: 'hero', label: 'Hero / Welcome Banner', description: 'Main landing intro and spotlight area' },
@@ -22,12 +25,38 @@ const HomepageCustomizer = () => {
   });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [origSettings, setOrigSettings] = useState(null);
+
+  const { user } = useAuth();
+
+  const hasPermission = (permCode) => {
+    if (!user) return false;
+    const roleName = user.role?.name || user.role || '';
+    const normalizedRole = String(roleName).toLowerCase();
+    if (['admin', 'superadmin', 'administrator'].includes(normalizedRole)) return true;
+    if (!permCode) return true;
+    return Array.isArray(user.permissions) && user.permissions.includes(permCode);
+  };
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [featuredBooksList, setFeaturedBooksList] = useState([]); // array of book objects
 
   useEffect(() => {
     const load = async () => {
       try {
         const data = await settingsService.getHomepageSettings();
         setSettings((prev) => ({ ...prev, ...data }));
+        setOrigSettings(data || {});
+
+        // If featured books are present (ids), fetch their details
+        const featuredIds = data?.sections?.featured?.featured_books || [];
+        if (Array.isArray(featuredIds) && featuredIds.length) {
+          try {
+            const details = await Promise.all(featuredIds.map((id) => bookService.getBookById(id).catch(() => null)));
+            setFeaturedBooksList(details.filter(Boolean));
+          } catch (err) {
+            console.error('Failed to load featured book details', err);
+          }
+        }
       } catch (error) {
         console.error(error);
       }
@@ -92,11 +121,63 @@ const HomepageCustomizer = () => {
     }));
   };
 
+  // Add or remove featured book objects in local preview + settings
+  const addFeaturedBook = async (bookId) => {
+    try {
+      const book = await bookService.getBookById(bookId);
+      if (!book) return;
+      setFeaturedBooksList((prev) => {
+        if (prev.find((b) => b.id === book.id)) return prev;
+        return [...prev, book];
+      });
+      // update settings payload ids
+      setSettings((prev) => ({
+        ...prev,
+        sections: {
+          ...prev.sections,
+          featured: {
+            ...(prev.sections?.featured || {}),
+            featured_books: Array.from(new Set([...(prev.sections?.featured?.featured_books || []), book.id])),
+          },
+        },
+      }));
+    } catch (err) {
+      console.error('Add featured book failed', err);
+    }
+  };
+
+  const removeFeaturedBook = (bookId) => {
+    setFeaturedBooksList((prev) => prev.filter((b) => b.id !== bookId));
+    setSettings((prev) => ({
+      ...prev,
+      sections: {
+        ...prev.sections,
+        featured: {
+          ...(prev.sections?.featured || {}),
+          featured_books: (prev.sections?.featured?.featured_books || []).filter((id) => id !== bookId),
+        },
+      },
+    }));
+  };
+
   const handleSave = async () => {
     setSaving(true);
     setMessage('');
     try {
-      await settingsService.updateHomepageSettings(settings);
+      // Prevent unauthorized edits to search settings
+      const payload = JSON.parse(JSON.stringify(settings));
+      if (!hasPermission('HOMEPAGE_SEARCH_MANAGE')) {
+        // Revert search-specific changes by restoring original search settings
+        if (origSettings && origSettings.sections && origSettings.sections.search) {
+          payload.sections = payload.sections || {};
+          payload.sections.search = origSettings.sections.search;
+        } else {
+          // If original not present, remove search from payload entirely
+          if (payload.sections) delete payload.sections.search;
+        }
+      }
+
+      await settingsService.updateHomepageSettings(payload);
       setMessage('Homepage settings saved successfully.');
     } catch (error) {
       setMessage('Unable to save settings right now.');
@@ -201,6 +282,36 @@ const HomepageCustomizer = () => {
                       <input value={settings.sections?.[section.key]?.subtitle || ''} onChange={(e) => updateSectionField(section.key, 'subtitle', e.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-700" placeholder="Optional subheading" />
                     </label>
                   </div>
+                  {section.key === 'featured' ? (
+                    <div className="mt-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-slate-600">Highlighted Books</p>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => setSearchOpen(true)} className="px-3 py-2 rounded-xl bg-emerald-600 text-white font-semibold">Add Books</button>
+                          <button onClick={() => { setFeaturedBooksList([]); updateSectionField('featured', 'featured_books', []); }} className="px-3 py-2 rounded-xl bg-slate-100">Clear</button>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 grid gap-3">
+                        {featuredBooksList.length === 0 ? (
+                          <div className="text-sm text-slate-500">No highlighted books selected.</div>
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {featuredBooksList.map((b) => (
+                              <div key={b.id} className="flex items-center gap-3 rounded-xl border p-3">
+                                <img src={(b.cover_image || b.cover_image_url) ? (b.cover_image_url || b.cover_image) : 'https://via.placeholder.com/80x120'} alt={b.title} className="w-16 h-24 object-cover rounded" />
+                                <div className="flex-1">
+                                  <div className="font-bold text-slate-800 truncate">{b.title}</div>
+                                  <div className="text-xs text-slate-500">{b.author || 'Unknown author'}</div>
+                                </div>
+                                <button onClick={() => removeFeaturedBook(b.id)} className="px-3 py-1 rounded bg-red-50 text-red-600">Remove</button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : null}
                   <div className="mt-3 grid gap-3 md:grid-cols-2">
                     <label className="text-sm text-slate-600">
                       <span className="mb-1 block font-medium text-slate-700">Section Order</span>
@@ -222,6 +333,38 @@ const HomepageCustomizer = () => {
                       <label className="text-sm text-slate-600">
                         <span className="mb-1 block font-medium text-slate-700">Secondary CTA URL</span>
                         <input value={settings.sections?.hero?.secondary_cta_url || ''} onChange={(e) => updateSectionField('hero', 'secondary_cta_url', e.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-700" placeholder="/contact" />
+                      </label>
+                    </div>
+                  ) : null}
+                  {section.key === 'search' ? (
+                    <div className="mt-3 grid gap-3">
+                      {!hasPermission('HOMEPAGE_SEARCH_MANAGE') && (
+                        <div className="rounded-md bg-yellow-50 border border-yellow-200 p-3 text-sm text-yellow-800">You do not have permission to edit search settings. Contact an administrator to request access.</div>
+                      )}
+
+                      <label className="flex items-center justify-between text-sm text-slate-600 rounded-2xl border p-3 bg-white">
+                        <span>Show hint / keyboard help</span>
+                        <input type="checkbox" disabled={!hasPermission('HOMEPAGE_SEARCH_MANAGE')} checked={Boolean(settings.sections?.search?.show_hint ?? true)} onChange={(e) => updateSectionField('search', 'show_hint', e.target.checked)} className="h-4 w-4" />
+                      </label>
+
+                      <label className="flex items-center justify-between text-sm text-slate-600 rounded-2xl border p-3 bg-white">
+                        <span>Enable Voice Search</span>
+                        <input type="checkbox" disabled={!hasPermission('HOMEPAGE_SEARCH_MANAGE')} checked={Boolean(settings.sections?.search?.enable_voice ?? true)} onChange={(e) => updateSectionField('search', 'enable_voice', e.target.checked)} className="h-4 w-4" />
+                      </label>
+
+                      <label className="flex items-center justify-between text-sm text-slate-600 rounded-2xl border p-3 bg-white">
+                        <span>Enable Deep Search</span>
+                        <input type="checkbox" disabled={!hasPermission('HOMEPAGE_SEARCH_MANAGE')} checked={Boolean(settings.sections?.search?.enable_deep ?? true)} onChange={(e) => updateSectionField('search', 'enable_deep', e.target.checked)} className="h-4 w-4" />
+                      </label>
+
+                      <label className="flex items-center justify-between text-sm text-slate-600 rounded-2xl border p-3 bg-white">
+                        <span>Show Suggestions</span>
+                        <input type="checkbox" disabled={!hasPermission('HOMEPAGE_SEARCH_MANAGE')} checked={Boolean(settings.sections?.search?.show_suggestions ?? true)} onChange={(e) => updateSectionField('search', 'show_suggestions', e.target.checked)} className="h-4 w-4" />
+                      </label>
+
+                      <label className="block text-sm text-slate-600">
+                        <span className="mb-1 block font-medium text-slate-700">Search Placeholder</span>
+                        <input disabled={!hasPermission('HOMEPAGE_SEARCH_MANAGE')} value={settings.sections?.search?.placeholder || ''} onChange={(e) => updateSectionField('search', 'placeholder', e.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-700" placeholder="Search books, authors, publishers..." />
                       </label>
                     </div>
                   ) : null}
@@ -294,6 +437,7 @@ const HomepageCustomizer = () => {
             ))}
           </div>
         </div>
+        <GlobalSearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} onResultClick={(bookId) => { addFeaturedBook(bookId); setSearchOpen(false); }} />
       </div>
     </div>
   );

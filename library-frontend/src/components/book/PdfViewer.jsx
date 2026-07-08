@@ -4,7 +4,8 @@ import { InView } from 'react-intersection-observer';
 import { ZoomIn, ZoomOut, File } from 'lucide-react';
 
 // 🔥 IMPORTANT: Setup PDF Worker for modern React/Vite
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+// Prefer local worker shipped in `public/` to avoid CDN/CORS issues in production
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 // Required CSS for react-pdf to render text and annotations properly

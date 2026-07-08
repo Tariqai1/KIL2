@@ -145,6 +145,20 @@ const getAllRequests = async () => {
 };
 
 /**
+ * Lightweight count endpoint for admin sidebar
+ */
+const getRequestsCount = async () => {
+  try {
+    ensureLoggedIn();
+    const res = await apiClient.get(`${REQUEST_URL}/count`);
+    return res.data || { total: 0, pending: 0, approved: 0, rejected: 0 };
+  } catch (error) {
+    console.error("❌ Error fetching request counts:", error);
+    return { total: 0, pending: 0, approved: 0, rejected: 0 };
+  }
+};
+
+/**
  * ✅ Update request status (Admin)
  * Backend endpoint:
  * - PATCH /api/restricted-requests/{id}/status?status_update=approved
@@ -254,6 +268,7 @@ const restrictedBookService = {
 
   // Admin
   getAllRequests,
+  getRequestsCount,
   updateRequestStatus,
 
   // Permissions

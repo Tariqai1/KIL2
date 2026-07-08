@@ -6,7 +6,8 @@ import { AuthProvider } from "./context/AuthProvider";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import "./index.css";
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_ID = (import.meta.env.VITE_GOOGLE_CLIENT_ID || "").trim();
+const googleAuthEnabled = Boolean(GOOGLE_CLIENT_ID);
 
 const clearStaleRuntime = async () => {
   if (typeof window === "undefined") return;
@@ -29,15 +30,17 @@ const clearStaleRuntime = async () => {
 };
 
 clearStaleRuntime().finally(() => {
-  ReactDOM.createRoot(document.getElementById("root")).render(
+  const app = (
     <React.StrictMode>
-      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-        <BrowserRouter>
-          <AuthProvider>
-            <App />
-          </AuthProvider>
-        </BrowserRouter>
-      </GoogleOAuthProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </BrowserRouter>
     </React.StrictMode>
+  );
+
+  ReactDOM.createRoot(document.getElementById("root")).render(
+    googleAuthEnabled ? <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>{app}</GoogleOAuthProvider> : app
   );
 });

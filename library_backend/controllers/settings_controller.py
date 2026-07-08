@@ -131,6 +131,27 @@ def get_homepage_settings(db: Session = Depends(get_db)):
 
 @router.put("/homepage-settings", tags=["Homepage Settings"])
 def update_homepage_settings(payload: dict, db: Session = Depends(get_db), current_user: user_model.User = Depends(require_permission("BOOK_MANAGE"))):
+    # If payload attempts to modify search-specific settings, ensure user has HOMEPAGE_SEARCH_MANAGE
+    try:
+        sections = payload.get('sections', {}) if isinstance(payload, dict) else {}
+    except Exception:
+        sections = {}
+
+    if isinstance(sections, dict) and 'search' in sections:
+        # Check if current_user effectively has the HOMEPAGE_SEARCH_MANAGE permission
+        role_name = (current_user.role.name if current_user.role and getattr(current_user.role, 'name', None) else '')
+        if not (isinstance(role_name, str) and role_name.lower() in ['admin', 'superadmin', 'administrator']):
+            user_perms = set()
+            if current_user.role and getattr(current_user.role, 'permissions', None):
+                for p in current_user.role.permissions:
+                    if hasattr(p, 'code') and p.code:
+                        user_perms.add(p.code)
+                    elif hasattr(p, 'name') and p.name:
+                        user_perms.add(p.name)
+
+            if 'HOMEPAGE_SEARCH_MANAGE' not in user_perms:
+                raise HTTPException(status_code=403, detail="You do not have permission: HOMEPAGE_SEARCH_MANAGE")
+
     merged = _merge_settings(payload)
     _write_settings_to_disk(merged)
     return {"message": "Homepage settings updated", "settings": merged}

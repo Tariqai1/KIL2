@@ -66,6 +66,12 @@ const PublicHome = () => {
 
   const featuredBooks = useMemo(() => {
     if (!Array.isArray(books) || books.length === 0) return [];
+    const featuredIds = homepageSettings?.sections?.featured?.featured_books || [];
+    if (Array.isArray(featuredIds) && featuredIds.length) {
+      const byId = new Map(books.map((b) => [b.id, b]));
+      const list = featuredIds.map((id) => byId.get(id)).filter(Boolean);
+      if (list.length) return list;
+    }
     return books.slice(0, 6);
   }, [books]);
 
@@ -379,7 +385,11 @@ const PublicHome = () => {
             title={getSectionConfig('search', { title: 'Library Search' }).title || 'Library Search'}
             subtitle={getSectionConfig('search', { subtitle: 'Search the library collection' }).subtitle || 'Search the library collection'}
             description={getSectionConfig('search', { description: 'Find books, authors, publishers and smart recommendations right from the library section.' }).description || 'Find books, authors, publishers and smart recommendations right from the library section.'}
-            placeholder="Search by title, author, or ISBN..."
+            placeholder={getSectionConfig('search', { placeholder: 'Search by title, author, or ISBN...' }).placeholder || 'Search by title, author, or ISBN...'}
+            showHint={Boolean(getSectionConfig('search', { show_hint: true }).show_hint !== false)}
+            enableVoice={Boolean(getSectionConfig('search', { enable_voice: true }).enable_voice !== false)}
+            enableDeepSearch={Boolean(getSectionConfig('search', { enable_deep: true }).enable_deep !== false)}
+            enableSuggestions={Boolean(getSectionConfig('search', { show_suggestions: true }).show_suggestions !== false)}
           />
         </div>
       </div>

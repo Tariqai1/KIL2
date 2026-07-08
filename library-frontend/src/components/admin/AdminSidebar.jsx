@@ -47,10 +47,10 @@ const AdminSidebar = ({ mobileClose = () => {} }) => {
             if (!user || !hasPermission('REQUEST_VIEW')) return;
 
             try {
-                const data = await restrictedBookService.getAllRequests();
-                if (isMounted && Array.isArray(data)) {
-                    const pending = data.filter(r => r.status === 'pending').length;
-                    setPendingCount(pending);
+                // Use lightweight count endpoint to avoid fetching full list
+                const counts = await restrictedBookService.getRequestsCount();
+                if (isMounted && counts) {
+                    setPendingCount(Number(counts.pending) || 0);
                 }
             } catch (error) {
                 console.error("Sidebar Count Error:", error);
@@ -59,8 +59,8 @@ const AdminSidebar = ({ mobileClose = () => {} }) => {
 
         fetchPendingCount();
         
-        // Har 30 second mein refresh karein
-        const interval = setInterval(fetchPendingCount, 30000);
+        // Har 60 second mein refresh karein (less chatty)
+        const interval = setInterval(fetchPendingCount, 60000);
 
         // Cleanup function
         return () => {
@@ -117,7 +117,7 @@ const AdminSidebar = ({ mobileClose = () => {} }) => {
                 { name: 'Restricted Books', path: '/admin/book-permissions', icon: LockClosedIcon, requiredPerm: 'PERMISSION_VIEW' },
                 { name: 'Digital Access', path: '/admin/digital-access-history', icon: ComputerDesktopIcon, requiredPerm: 'LOGS_VIEW' },
                 { name: 'Audit Logs', path: '/admin/logs', icon: ClipboardDocumentListIcon, requiredPerm: 'LOGS_VIEW' },
-                { name: 'Homepage Settings', path: '/admin/homepage-settings', icon: AdjustmentsHorizontalIcon, requiredPerm: 'BOOK_MANAGE' },
+                { name: 'Homepage Settings', path: '/admin/homepage-settings', icon: AdjustmentsHorizontalIcon, requiredPerm: 'HOMEPAGE_SEARCH_MANAGE' },
             ]
         }
     ], [pendingCount, hasPermission]);
