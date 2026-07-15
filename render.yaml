@@ -12,8 +12,8 @@ services:
       pip install -r library_backend/requirements.txt
       cd library_backend && alembic upgrade head
     
-    # ✅ CRITICAL: Use Python wrapper script that handles directory change
-    startCommand: python run_server.py
+    # ✅ CRITICAL: Use app.py which handles imports from anywhere
+    startCommand: python app.py
     
     # ✅ Environment variables
     envVars:
