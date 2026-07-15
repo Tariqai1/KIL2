@@ -6,17 +6,14 @@ services:
     plan: free
     pythonVersion: 3.11
     
-    # ✅ NO rootDir - we'll handle directory in start command
-    
-    # ✅ Build command from root, installs in library_backend
+    # ✅ Build command - install from root, knows how to find library_backend
     buildCommand: |
       pip install --upgrade pip
-      cd library_backend
-      pip install -r requirements.txt
-      alembic upgrade head
+      pip install -r library_backend/requirements.txt
+      cd library_backend && alembic upgrade head
     
-    # ✅ CRITICAL: Change to library_backend and run uvicorn from there
-    startCommand: cd library_backend && uvicorn main:app --host 0.0.0.0 --port 10000
+    # ✅ CRITICAL: Use Python wrapper script that handles directory change
+    startCommand: python run_server.py
     
     # ✅ Environment variables
     envVars:
