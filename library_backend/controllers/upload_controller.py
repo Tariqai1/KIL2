@@ -1,6 +1,7 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException, Depends
 from auth import require_permission
 from utils.cloudinary_helper import upload_to_cloudinary  # ✅ New Import
+from utils.file_validator import validate_image, validate_pdf  # ✅ NEW: File validation (Issue #11)
 
 router = APIRouter()
 
@@ -8,11 +9,14 @@ router = APIRouter()
 @router.post("/image", dependencies=[Depends(require_permission("FILE_UPLOAD"))])
 async def upload_image(file: UploadFile = File(...)):
     """
-    Book cover image upload karta hai aur Cloudinary URL return karta hai.
+    ✅ Book cover image upload with file size validation.
+    Cloudinary URL return karta hai.
+    
+    Max size: 10MB
+    Allowed: JPEG, PNG, WEBP
     """
-    # 1. Validation check (Security)
-    if file.content_type not in ["image/jpeg", "image/png", "image/webp"]:
-        raise HTTPException(status_code=400, detail="Invalid file type. Only JPEG, PNG, WEBP are allowed.")
+    # ✅ 1. Validation check - Size + Type (Issue #11 Fix)
+    await validate_image(file)
     
     # 2. Upload to Cloudinary (Folder: covers)
     url = upload_to_cloudinary(file, folder="booknest/covers")
@@ -29,11 +33,14 @@ async def upload_image(file: UploadFile = File(...)):
 @router.post("/pdf", dependencies=[Depends(require_permission("FILE_UPLOAD"))])
 async def upload_pdf(file: UploadFile = File(...)):
     """
-    Book PDF upload karta hai aur Cloudinary URL return karta hai.
+    ✅ Book PDF upload with file size validation.
+    Cloudinary URL return karta hai.
+    
+    Max size: 50MB
+    Allowed: PDF only
     """
-    # 1. Validation check (Security)
-    if file.content_type != "application/pdf":
-        raise HTTPException(status_code=400, detail="Invalid file type. Only PDF is allowed.")
+    # ✅ 1. Validation check - Size + Type (Issue #11 Fix)
+    await validate_pdf(file)
         
     # 2. Upload to Cloudinary (Folder: pdfs)
     url = upload_to_cloudinary(file, folder="booknest/pdfs")

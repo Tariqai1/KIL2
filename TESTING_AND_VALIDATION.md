@@ -69,7 +69,7 @@ setTimeout(() => {
 - [ ] Click "Add New Book" button
 - [ ] Modal opens with BookForm
 - [ ] Click on "Categories & Genres" dropdown
-- [ ] Dropdown menu appears with all categories
+- [ ] Dropdown menu appears with b tegories
 - [ ] Click on a category (should highlight and show checkmark)
 - [ ] Category appears as tag in the button area
 - [ ] Click X on tag to remove category

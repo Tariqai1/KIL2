@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { bookService } from '../api/bookService';
 import { useBookSearch } from '../hooks/useBookSearch';
 import BookCard from '../components/book/BookCard';
 import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline';
 
 const UserLibrary = () => {
+    const location = useLocation();
+    const [searchParams] = useSearchParams();
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -20,12 +23,34 @@ const UserLibrary = () => {
         fetchBooks();
     }, []);
 
+    // ✅ Apply search from URL params once when books are loaded
+    useEffect(() => {
+        // Only run once books have loaded and we have books to search through
+        if (loading || !Array.isArray(books) || books.length === 0) return;
+
+        const urlSearch = searchParams.get('search');
+        const stateSearch = location.state?.preSearch;
+        const searchValue = urlSearch || stateSearch;
+
+        if (searchValue && searchValue.trim()) {
+            console.log('✅ Applying search:', searchValue);
+            console.log('📚 Available books:', books.length);
+            
+            // Set search term (this will trigger filtering through useBookSearch hook)
+            setSearchTerm(searchValue);
+        }
+    }, [loading, books.length, searchParams.toString(), location.state?.preSearch, setSearchTerm]);
+
     const fetchBooks = async () => {
         try {
             const data = await bookService.read_books(0, 100, true); // Approved only
-            setBooks(data);
+            // Handle both array and wrapped response formats
+            const booksArray = Array.isArray(data) ? data : (data?.books || []);
+            console.log('📚 Fetched books:', booksArray.length);
+            setBooks(booksArray);
         } catch (error) {
             console.error("Error fetching books:", error);
+            setBooks([]);
         } finally {
             setLoading(false);
         }

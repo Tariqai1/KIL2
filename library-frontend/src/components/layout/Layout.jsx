@@ -153,4 +153,5 @@ const Layout = () => {
     );
 };
 
-export default Layout;
+// ✅ MEMOIZATION: Prevent unnecessary re-renders (Issue #10 Fix)
+export default React.memo(Layout);

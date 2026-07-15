@@ -33,6 +33,10 @@ const AdminSidebar = ({ mobileClose = () => {} }) => {
         // 2. Public Items (Jinke liye permission null hai)
         if (!permCode) return true;
 
+        if (Array.isArray(permCode)) {
+            return permCode.some((code) => Array.isArray(user.permissions) && user.permissions.includes(code));
+        }
+
         // 3. Check Permissions Array Safely
         // Ensure karte hain ki permissions exist kare aur array ho
         return Array.isArray(user.permissions) && user.permissions.includes(permCode);
@@ -117,7 +121,18 @@ const AdminSidebar = ({ mobileClose = () => {} }) => {
                 { name: 'Restricted Books', path: '/admin/book-permissions', icon: LockClosedIcon, requiredPerm: 'PERMISSION_VIEW' },
                 { name: 'Digital Access', path: '/admin/digital-access-history', icon: ComputerDesktopIcon, requiredPerm: 'LOGS_VIEW' },
                 { name: 'Audit Logs', path: '/admin/logs', icon: ClipboardDocumentListIcon, requiredPerm: 'LOGS_VIEW' },
-                { name: 'Homepage Settings', path: '/admin/homepage-settings', icon: AdjustmentsHorizontalIcon, requiredPerm: 'HOMEPAGE_SEARCH_MANAGE' },
+                {
+                    name: 'Homepage Settings',
+                    path: '/admin/homepage-settings',
+                    icon: AdjustmentsHorizontalIcon,
+                    requiredPerm: [
+                        'HOMEPAGE_BRANDING_MANAGE',
+                        'HOMEPAGE_CONTENT_MANAGE',
+                        'HOMEPAGE_LAYOUT_MANAGE',
+                        'HOMEPAGE_VISIBILITY_MANAGE',
+                        'HOMEPAGE_SEARCH_MANAGE',
+                    ]
+                },
             ]
         }
     ], [pendingCount, hasPermission]);

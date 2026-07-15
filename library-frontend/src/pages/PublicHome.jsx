@@ -24,6 +24,7 @@ import SuccessScreen from "../components/RestrictedAccess/SuccessScreen"; // ✅
 
 // Services + Hooks
 import { bookService } from "../api/bookService";
+import { categoryService } from "../api/categoryService";
 import { useBookSearch } from "../hooks/useBookSearch";
 import LandingPostsPreview from "../components/public/LandingPostsPreview";
 import DonationPanel from "../components/donation/DonationPanel";
@@ -59,6 +60,7 @@ const PublicHome = () => {
   const [loading, setLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
   const [homepageSettings, setHomepageSettings] = useState({ theme: 'aurora', sections: {}, layout: {} });
+  const [dynamicCategories, setDynamicCategories] = useState([]);  // ✅ Dynamic Categories from DB
 
   // Filters
   const [sortBy, setSortBy] = useState("newest");
@@ -95,16 +97,31 @@ const PublicHome = () => {
 
   // Categories list
   const categories = useMemo(
-    () => [
-      { value: "all", label: "All Categories" },
-      { value: "aqeedah_fiqh", label: "Aqeedah & Fiqh" },
-      { value: "quran_sciences", label: "Quran & Sciences" },
-      { value: "ahkam_masail", label: "Ahkam & Masail" },
-      { value: "history_seerah", label: "History & Seerah" },
-      { value: "literature", label: "Literature" },
-      { value: "science_tech", label: "Science & Tech" },
-    ],
-    []
+    () => {
+      // ✅ If dynamic categories loaded from DB, use them
+      if (dynamicCategories.length > 0) {
+        return [
+          { value: "all", label: "All Categories" },
+          ...dynamicCategories.map(cat => ({
+            value: cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '_'),
+            label: cat.name || cat.category_name,
+            id: cat.id
+          }))
+        ];
+      }
+      
+      // ✅ Fallback to hardcoded if DB load fails
+      return [
+        { value: "all", label: "All Categories" },
+        { value: "aqeedah_fiqh", label: "Aqeedah & Fiqh" },
+        { value: "quran_sciences", label: "Quran & Sciences" },
+        { value: "ahkam_masail", label: "Ahkam & Masail" },
+        { value: "history_seerah", label: "History & Seerah" },
+        { value: "literature", label: "Literature" },
+        { value: "science_tech", label: "Science & Tech" },
+      ];
+    },
+    [dynamicCategories]
   );
 
   // --- 5) SEARCH HOOK ---
@@ -136,6 +153,23 @@ const PublicHome = () => {
   useEffect(() => {
     loadBooks();
   }, [loadBooks]);
+
+  // ✅ NEW: Fetch categories from database (admin-added)
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await categoryService.getAllCategories();
+        const categoryList = Array.isArray(data) ? data : data?.categories || [];
+        setDynamicCategories(categoryList);
+        console.log("✅ Dynamic categories loaded:", categoryList);
+      } catch (error) {
+        console.warn("⚠️ Could not load categories from DB, using fallback:", error);
+        setDynamicCategories([]);
+      }
+    };
+
+    loadCategories();
+  }, []);
 
   useEffect(() => {
     const loadSettings = async () => {

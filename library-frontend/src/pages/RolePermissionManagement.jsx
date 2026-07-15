@@ -23,6 +23,30 @@ import '../assets/css/ManagementPages.css';
 // Add more entries here instead of copy-pasting bespoke buttons per permission.
 const PINNED_PERMISSIONS = [
     {
+        name: 'HOMEPAGE_BRANDING_MANAGE',
+        icon: KeyIcon,
+        highlightClass: 'ring-2 ring-cyan-200 border-cyan-300',
+        description: 'Allows editing homepage visual identity such as theme, title, language, and hero badge.',
+    },
+    {
+        name: 'HOMEPAGE_CONTENT_MANAGE',
+        icon: PencilIcon,
+        highlightClass: 'ring-2 ring-indigo-200 border-indigo-300',
+        description: 'Allows editing homepage section text, headings, order, and featured books.',
+    },
+    {
+        name: 'HOMEPAGE_LAYOUT_MANAGE',
+        icon: AdjustmentsHorizontalIcon,
+        highlightClass: 'ring-2 ring-emerald-200 border-emerald-300',
+        description: 'Allows editing layout extras like stats cards, strip visibility, and optional blocks.',
+    },
+    {
+        name: 'HOMEPAGE_VISIBILITY_MANAGE',
+        icon: ShieldCheckIcon,
+        highlightClass: 'ring-2 ring-purple-200 border-purple-300',
+        description: 'Allows showing or hiding homepage sections from public users.',
+    },
+    {
         name: 'HOMEPAGE_SEARCH_MANAGE',
         icon: MapPinIcon,
         highlightClass: 'ring-2 ring-yellow-200 border-yellow-300',

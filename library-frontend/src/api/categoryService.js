@@ -13,15 +13,17 @@ export const categoryService = {
     /**
      * Fetches all categories
      * API Endpoint: GET /api/categories/
+     * ✅ Public endpoint - no auth required for UI dropdowns
      */
     getAllCategories: async () => {
         try {
-            // Note: Ensure your backend uses /api/categories/
-            // (Aapke main.py ke hisaab se yeh path sahi hai)
             const response = await apiClient.get('/api/categories/');
             return response.data;
         } catch (error) {
-            handleError(error, 'Failed to fetch categories');
+            // ✅ FIXED: Public endpoint now works without auth
+            // Graceful fallback in case of any error
+            console.warn("⚠️ Could not load categories, showing empty list");
+            return [];
         }
     },
 

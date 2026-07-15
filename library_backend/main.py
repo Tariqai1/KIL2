@@ -14,18 +14,22 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
 # --- Redis & Rate Limiting (Safe Import) ---
-# Graceful degradation: If Redis/Limiter libraries are missing, app won't crash.
+# Graceful degradation: If Limiter libraries are missing, app won't crash.
 try:
-    import redis.asyncio as redis
-    from fastapi_limiter import FastAPILimiter
+    from slowapi import Limiter
+    from slowapi.util import get_remote_address
 except ImportError:
-    redis = None
-    FastAPILimiter = None
-    print("⚠️ WARNING: 'fastapi-limiter' or 'redis' library not found. Rate limiting will be disabled.")
+    Limiter = None
+    print("⚠️ WARNING: 'slowapi' library not found. Rate limiting will be disabled.")
+
+limiter = Limiter(key_func=get_remote_address) if Limiter else None
+
+# ✅ NEW: Error logging utilities (Issue #7 Fix)
+from utils.error_handler import log_error
 
 # --- Import Database & Models ---
 from database import engine, Base, get_db
-from models import user_model, permission_model, library_management_models
+from models import user_model, permission_model, library_management_models, token_blacklist_model
 import auth
 
 # --- Import Controllers ---
@@ -69,26 +73,16 @@ async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     print("✅ Database tables verified.")
 
-    # 2. Redis Connection (For Caching & Rate Limiting)
-    redis_connection = None
-    if FastAPILimiter and redis:
-        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
-        try:
-            redis_connection = redis.from_url(redis_url, encoding="utf-8", decode_responses=True)
-            await FastAPILimiter.init(redis_connection)
-            print(f"✅ Redis Connected & Rate Limiter Initialized at {redis_url}")
-        except Exception as e:
-            print(f"⚠️ Redis Connection Failed: {e}. Rate limiting is DISABLED.")
+    # 2. Initialize Rate Limiter (slowapi - no Redis needed)
+    if limiter:
+        print("✅ Rate Limiter Initialized")
     else:
-        print("⚠️ Rate Limiting skipped (Library missing or Redis not configured).")
+        print("⚠️ Rate Limiting skipped (slowapi library missing).")
 
     yield  # Application runs here
 
     # 🛑 Shutdown
     print("🛑 System Shutting Down...")
-    if redis_connection:
-        await redis_connection.close()
-        print("✅ Redis Connection Closed.")
 
 # --- Initialize FastAPI App ---
 app = FastAPI(
@@ -99,6 +93,11 @@ app = FastAPI(
     redoc_url="/redoc",
     lifespan=lifespan
 )
+
+# ✅ Add Rate Limiter to App (Issue #4 Fix)
+if limiter:
+    app.state.limiter = limiter
+    app.add_exception_handler(Exception, lambda req, exc: JSONResponse({"detail": "Rate limit exceeded"}, status_code=429))
 
 # ==========================================
 # 🛡️ MIDDLEWARES (Best Practices)
@@ -133,31 +132,30 @@ app.add_middleware(
 # 3. GZip Compression (Faster Responses)
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
-# 4. CORS (Allowed Origins)
+# 4. CORS (Allowed Origins) - ✅ FIXED: Whitelist-based (Issue #5)
 _cors_env = os.getenv("CORS_ORIGINS", "")
 origins = [o.strip() for o in _cors_env.split(",") if o.strip()] if _cors_env else [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "http://localhost:5174",
-    "http://127.0.0.1:5174",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-]
-
-allowed_origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "https://yourdomain.com",
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\\d+)?",
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=origins,
+    allow_credentials=True,  # ✅ REQUIRED for cookies
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],  # ✅ Whitelist (was "*")
+    allow_headers=[  # ✅ Whitelist (was "*")
+        "Content-Type",
+        "Authorization",
+        "Accept",
+        "Origin",
+        "X-Requested-With",
+    ],
+    expose_headers=["X-Process-Time"],
+    max_age=3600,
 )
 
 static_path = Path("static")
@@ -209,13 +207,35 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             content={"detail": "Internal server error during validation."}
         )
 
-# 2. Global Exception Handler (Crash Prevention)
+# 2. Global Exception Handler (Crash Prevention) - ✅ Updated with error logging (Issue #7)
 @app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    print(f"🔥 CRITICAL ERROR: {str(exc)}")
+async def global_exception_handler_impl(request: Request, exc: Exception):
+    try:
+        db = next(get_db())
+        error_log = log_error(
+            db=db,
+            error=exc,
+            request=request,
+            context="unhandled_exception",
+            severity="ERROR"
+        )
+        db.close()
+    except:
+        error_log = log_error(
+            db=None,
+            error=exc,
+            request=request,
+            context="unhandled_exception",
+            severity="ERROR"
+        )
+    
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"detail": "An unexpected error occurred on the server."}
+        content={
+            "detail": "An unexpected error occurred on the server.",
+            "error_id": error_log["error_id"],  # ✅ Give user a reference ID
+            "message": "Please contact support with the error ID."
+        }
     )
 
 # ==========================================
@@ -272,6 +292,27 @@ api_router.include_router(settings_controller.router, prefix="/settings", tags=[
 # Register Main Router
 app.include_router(api_router)
 
+
+# ------------------------------------------------------------------
+# Fallback aliases for request count endpoints
+# ------------------------------------------------------------------
+# Some clients were still hitting a 404 on /count while the router reload
+# catches up. Keep explicit aliases here so the route is always available.
+@app.get("/api/restricted-requests/count", tags=["User Requests"], include_in_schema=False)
+def restricted_requests_count_alias(
+    db: Session = Depends(get_db),
+    current_user=Depends(auth.get_current_user),
+):
+    return request_user_controller.get_requests_count(db=db, current_user=current_user)
+
+
+@app.get("/api/restricted-requests/counts", tags=["User Requests"], include_in_schema=False)
+def restricted_requests_counts_alias(
+    db: Session = Depends(get_db),
+    current_user=Depends(auth.get_current_user),
+):
+    return request_user_controller.get_requests_count(db=db, current_user=current_user)
+
 # ==========================================
 # 🛠️ UTILITY & SETUP ENDPOINTS
 # ==========================================
@@ -311,6 +352,13 @@ def setup_default_permissions(db: Session = Depends(get_db)):
         ],
         "System Audit": [
             {"name": "LOGS_VIEW", "description": "Can view system audit logs and activity"},
+        ],
+        "Homepage Management": [
+            {"name": "HOMEPAGE_BRANDING_MANAGE", "description": "Can update homepage theme, language, title, and hero badge"},
+            {"name": "HOMEPAGE_CONTENT_MANAGE", "description": "Can update homepage section content, ordering, and featured books"},
+            {"name": "HOMEPAGE_LAYOUT_MANAGE", "description": "Can update homepage layout toggles and extra blocks"},
+            {"name": "HOMEPAGE_VISIBILITY_MANAGE", "description": "Can control homepage section visibility"},
+            {"name": "HOMEPAGE_SEARCH_MANAGE", "description": "Can update homepage search options (hint, voice, deep search, suggestions, placeholder)"},
         ]
     }
 

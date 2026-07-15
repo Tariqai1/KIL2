@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from auth import require_permission
+from auth import get_current_user
 from database import get_db
 from models import user_model
 
@@ -130,7 +130,30 @@ def get_homepage_settings(db: Session = Depends(get_db)):
 
 
 @router.put("/homepage-settings", tags=["Homepage Settings"])
-def update_homepage_settings(payload: dict, db: Session = Depends(get_db), current_user: user_model.User = Depends(require_permission("BOOK_MANAGE"))):
+def update_homepage_settings(payload: dict, db: Session = Depends(get_db), current_user: user_model.User = Depends(get_current_user)):
+    role_name = (current_user.role.name if current_user.role and getattr(current_user.role, 'name', None) else '')
+    is_admin = isinstance(role_name, str) and role_name.lower() in ['admin', 'superadmin', 'administrator']
+
+    user_perms = set()
+    if current_user.role and getattr(current_user.role, 'permissions', None):
+        for p in current_user.role.permissions:
+            if hasattr(p, 'code') and p.code:
+                user_perms.add(p.code)
+            elif hasattr(p, 'name') and p.name:
+                user_perms.add(p.name)
+
+    homepage_manage_perms = {
+        'HOMEPAGE_BRANDING_MANAGE',
+        'HOMEPAGE_CONTENT_MANAGE',
+        'HOMEPAGE_LAYOUT_MANAGE',
+        'HOMEPAGE_VISIBILITY_MANAGE',
+        'HOMEPAGE_SEARCH_MANAGE',
+        'BOOK_MANAGE',
+    }
+
+    if not is_admin and not (user_perms & homepage_manage_perms):
+        raise HTTPException(status_code=403, detail="You do not have permission to manage homepage settings")
+
     # If payload attempts to modify search-specific settings, ensure user has HOMEPAGE_SEARCH_MANAGE
     try:
         sections = payload.get('sections', {}) if isinstance(payload, dict) else {}
@@ -139,16 +162,7 @@ def update_homepage_settings(payload: dict, db: Session = Depends(get_db), curre
 
     if isinstance(sections, dict) and 'search' in sections:
         # Check if current_user effectively has the HOMEPAGE_SEARCH_MANAGE permission
-        role_name = (current_user.role.name if current_user.role and getattr(current_user.role, 'name', None) else '')
-        if not (isinstance(role_name, str) and role_name.lower() in ['admin', 'superadmin', 'administrator']):
-            user_perms = set()
-            if current_user.role and getattr(current_user.role, 'permissions', None):
-                for p in current_user.role.permissions:
-                    if hasattr(p, 'code') and p.code:
-                        user_perms.add(p.code)
-                    elif hasattr(p, 'name') and p.name:
-                        user_perms.add(p.name)
-
+        if not is_admin:
             if 'HOMEPAGE_SEARCH_MANAGE' not in user_perms:
                 raise HTTPException(status_code=403, detail="You do not have permission: HOMEPAGE_SEARCH_MANAGE")
 

@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation, useSearchParams } from "react-router-dom";
 
 // --- Services + Hooks ---
 import { bookService } from "../api/bookService";
+import { categoryService } from "../api/categoryService";
 import { useBookSearch } from "../hooks/useBookSearch";
 import useAuth from "../hooks/useAuth";
 
@@ -249,11 +250,14 @@ const PublicBookCard = ({
 const UserLibrary = () => {
   const navigate = useNavigate();
   const { user, isAuth } = useAuth();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
 
   // --- STATE ---
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const activeRequestRef = useRef(0);
+  const [dynamicCategories, setDynamicCategories] = useState([]);  // ✅ Dynamic Categories from DB
 
   const [sortBy, setSortBy] = useState("newest");
 
@@ -282,16 +286,31 @@ const UserLibrary = () => {
 
   // --- CATEGORIES ---
   const categories = useMemo(
-    () => [
-      { value: "all", label: "All Categories" },
-      { value: "aqeedah_fiqh", label: "Aqeedah & Fiqh" },
-      { value: "quran_sciences", label: "Quran & Sciences" },
-      { value: "history_seerah", label: "History & Seerah" },
-      { value: "literature", label: "Literature & Adab" },
-      { value: "science_tech", label: "Science & Tech" },
-      { value: "islamic_studies", label: "General Islamic Studies" },
-    ],
-    []
+    () => {
+      // ✅ If dynamic categories loaded from DB, use them
+      if (dynamicCategories.length > 0) {
+        return [
+          { value: "all", label: "All Categories" },
+          ...dynamicCategories.map(cat => ({
+            value: cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '_'),
+            label: cat.name || cat.category_name,
+            id: cat.id
+          }))
+        ];
+      }
+      
+      // ✅ Fallback to hardcoded if DB load fails
+      return [
+        { value: "all", label: "All Categories" },
+        { value: "aqeedah_fiqh", label: "Aqeedah & Fiqh" },
+        { value: "quran_sciences", label: "Quran & Sciences" },
+        { value: "history_seerah", label: "History & Seerah" },
+        { value: "literature", label: "Literature & Adab" },
+        { value: "science_tech", label: "Science & Tech" },
+        { value: "islamic_studies", label: "General Islamic Studies" },
+      ];
+    },
+    [dynamicCategories]
   );
 
   // --- SEARCH HOOK ---
@@ -333,6 +352,44 @@ const UserLibrary = () => {
   };
 
   // --- EFFECTS ---
+  // ✅ NEW: Fetch categories from database (admin-added)
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await categoryService.getAllCategories();
+        const categoryList = Array.isArray(data) ? data : data?.categories || [];
+        setDynamicCategories(categoryList);
+        console.log("✅ Dynamic categories loaded:", categoryList);
+      } catch (error) {
+        console.warn("⚠️ Could not load categories from DB, using fallback:", error);
+        setDynamicCategories([]);
+      }
+    };
+
+    loadCategories();
+  }, []);
+
+  // ✅ NEW: Apply search from URL params or navigation state
+  useEffect(() => {
+    // Only run once books have loaded and we have books to search through
+    if (loading || !Array.isArray(books) || books.length === 0) return;
+
+    const urlSearch = searchParams.get('search');
+    const stateSearch = location.state?.preSearch;
+    const searchValue = urlSearch || stateSearch;
+
+    if (searchValue && searchValue.trim()) {
+      console.log("✅ Setting search term from URL/state:", searchValue);
+      setSearchTerm(searchValue);
+
+      // Smooth scroll to grid
+      setTimeout(() => {
+        const el = document.getElementById("book-grid");
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      }, 200);
+    }
+  }, [loading, books.length, searchParams.toString(), location.state?.preSearch, setSearchTerm]);
+
   useEffect(() => {
     const handler = window.setTimeout(() => {
       fetchBooks(searchTerm);
@@ -621,6 +678,7 @@ const UserLibrary = () => {
 
                 {/* GRID / LIST */}
                 <motion.div
+                  id="book-grid"
                   initial="hidden"
                   whileInView="show"
                   viewport={{ once: true }}

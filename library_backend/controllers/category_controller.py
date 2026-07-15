@@ -45,16 +45,16 @@ def create_category(
     return new_category
 
 
-# --- READ ALL (Accessible to Students/Staff) ---
+# --- READ ALL (Public Access - No Auth Required) ---
 @router.get("/", response_model=List[category_schema.Category])
 def read_categories(
     skip: int = 0, 
     limit: int = 100, 
-    db: Session = Depends(get_db),
-    # ✅ FIX: 'BOOK_VIEW' allow kiya hai taake Student dropdown dekh sake
-    current_user: user_model.User = Depends(require_permission("BOOK_VIEW"))
+    db: Session = Depends(get_db)
 ):
-    """Fetches a list of all non-deleted categories."""
+    # ✅ FIXED: Public endpoint for category dropdown on search/filter pages
+    # No authentication required - this is for user-facing dropdowns
+    """Fetches a list of all non-deleted categories. Public endpoint."""
     return db.query(book_model.Category).filter(
         book_model.Category.deleted_at.is_(None)
     ).order_by(book_model.Category.id).offset(skip).limit(limit).all()

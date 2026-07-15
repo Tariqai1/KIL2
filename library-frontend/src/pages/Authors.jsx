@@ -118,12 +118,12 @@ const Authors = () => {
     return authors.reduce((sum, a) => sum + (a.volumes || 0), 0);
   }, [authors]);
 
-  // ✅ Navigate to Home with preSearch
+  // ✅ Navigate to Books Library with preSearch (using URL params + state)
   const handleAuthorClick = (authorName) => {
-    navigate("/", {
+    navigate(`/books?search=${encodeURIComponent(authorName)}`, {
       state: {
         preSearch: authorName,
-        mode: "author", // optional future use
+        mode: "author"
       },
     });
   };

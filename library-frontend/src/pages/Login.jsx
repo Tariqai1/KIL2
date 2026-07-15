@@ -117,19 +117,6 @@ const CooldownBanner = ({ remaining }) => (
   </motion.div>
 );
 
-// ─── Feature Card ─────────────────────────────────────────
-const FeatureCard = ({ emoji, title, desc }) => (
-  <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl px-4 py-3.5 hover:bg-white/10 transition-all duration-300 cursor-default group">
-    <span className="text-2xl flex-shrink-0 group-hover:scale-110 transition-transform duration-300" aria-hidden="true">
-      {emoji}
-    </span>
-    <div>
-      <div className="text-white font-bold text-sm">{title}</div>
-      <div className="text-blue-300/50 text-xs mt-0.5">{desc}</div>
-    </div>
-  </div>
-);
-
 const GoogleLoginButton = ({ disabled, loading, onGoogleSuccess, onGoogleError }) => {
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -332,123 +319,74 @@ const Login = () => {
   // RENDER
   // ═══════════════════════════════════════════════════════════
   return (
-    <div className="min-h-screen flex overflow-hidden bg-white">
+    <div className="min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 via-white to-cyan-50 p-6 sm:p-10">
 
-      {/* LEFT PANEL */}
-      <div className="hidden lg:flex lg:w-[46%] xl:w-[48%] relative flex-col items-center justify-center p-14 overflow-hidden bg-gradient-to-br from-[#000C1D] via-[#001D3D] to-[#003566]">
+      <div aria-hidden="true" className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none opacity-70" />
+      <div aria-hidden="true" className="absolute bottom-0 left-0 w-72 h-72 bg-gradient-to-tr from-sky-50 to-cyan-50 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none opacity-70" />
 
-        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-          <div className="absolute top-1/3 -left-40 w-[520px] h-[520px] bg-blue-600/10 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-1/4 -right-40 w-[420px] h-[420px] bg-cyan-500/8 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1.5s" }} />
-          <div
-            className="absolute inset-0 opacity-[0.025]"
-            style={{
-              backgroundImage: "linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px)",
-              backgroundSize: "56px 56px",
-            }}
-          />
-          <div className="absolute top-16 right-20 w-3 h-3 rounded-full bg-cyan-300/40 animate-ping" style={{ animationDuration: "3s" }} />
-          <div className="absolute bottom-24 left-16 w-2 h-2 rounded-full bg-blue-300/50 animate-ping" style={{ animationDuration: "4s", animationDelay: "1s" }} />
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
+        className="relative z-10 w-full max-w-[430px] rounded-3xl border border-slate-200 bg-white/90 backdrop-blur-sm p-6 sm:p-8 shadow-xl"
+      >
+        <div className="flex items-center gap-3 mb-8">
+          <div className="w-10 h-10 rounded-2xl bg-[#002147] flex items-center justify-center shadow-lg shadow-blue-900/25">
+            <ShieldCheckIcon className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <p className="text-sm font-black text-slate-800">Markaz Library</p>
+            <p className="text-[11px] text-slate-500 font-medium">Secure Login</p>
+          </div>
         </div>
 
-        <div className="relative z-10 max-w-sm w-full text-center">
-          <div className="flex justify-center mb-10">
-            <div className="relative">
-              <div className="absolute inset-0 rounded-3xl bg-cyan-400/20 blur-2xl scale-150" aria-hidden="true" />
-              <div className="relative w-20 h-20 rounded-3xl bg-white/10 border border-white/20 flex items-center justify-center shadow-2xl backdrop-blur-sm">
-                <ShieldCheckIcon className="w-10 h-10 text-white" />
-              </div>
-            </div>
-          </div>
-
-          <h1 className="text-4xl font-black text-white leading-tight mb-1">Markaz Library</h1>
-          <p className="text-cyan-300 font-bold text-xl mb-3">Management System</p>
-          <p className="text-blue-200/55 text-sm mb-10 leading-relaxed">
-            Your digital gateway to knowledge — manage collections, track borrowing history, and explore thousands of resources.
-          </p>
-
-          <div className="space-y-3 text-left">
-            <FeatureCard emoji="📚" title="Books & Digital Resources" desc="Full catalog with PDF viewer & tracking" />
-            <FeatureCard emoji="🔐" title="Role-Based Access Control" desc="Admin, Manager, Student & Member roles" />
-            <FeatureCard emoji="📊" title="Real-Time Analytics" desc="Borrowing trends & circulation reports" />
-          </div>
-
-          <p className="mt-10 text-blue-200/25 text-xs tracking-wide">
-            &copy; {new Date().getFullYear()} Markaz Ahle Hadees Kokan
+        <div className="mb-8">
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Welcome back</h2>
+          <p className="text-slate-500 text-sm mt-1.5 font-medium">
+            Sign in to continue to your account
           </p>
         </div>
-      </div>
-
-      {/* RIGHT PANEL */}
-      <div className="flex-1 flex flex-col items-center justify-center bg-white p-6 sm:p-10 xl:p-16 overflow-y-auto relative">
-
-        <div aria-hidden="true" className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none opacity-70" />
-        <div aria-hidden="true" className="absolute bottom-0 left-0 w-72 h-72 bg-gradient-to-tr from-sky-50 to-cyan-50 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none opacity-70" />
 
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, ease: "easeOut" }}
-          className="relative z-10 w-full max-w-[420px]"
+          animate={shake ? { x: [0, -10, 10, -6, 6, 0] } : { x: 0 }}
+          transition={{ duration: 0.4 }}
         >
-          {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 rounded-2xl bg-[#002147] flex items-center justify-center shadow-lg shadow-blue-900/25">
-              <ShieldCheckIcon className="w-5 h-5 text-white" />
+          {/* Cooldown banner */}
+          {cooldownRemaining > 0 && (
+            <div className="mb-5">
+              <CooldownBanner remaining={cooldownRemaining} />
             </div>
-            <div>
-              <p className="text-sm font-black text-slate-800">Markaz Library</p>
-              <p className="text-[11px] text-slate-500 font-medium">Management System</p>
-            </div>
+          )}
+
+          {/* Google */}
+          {GOOGLE_AUTH_ENABLED ? (
+            <GoogleLoginButton
+              disabled={isDisabled}
+              loading={googleLoading}
+              onGoogleSuccess={handleGoogleSuccess}
+              onGoogleError={handleGoogleError}
+            />
+          ) : (
+            <button
+              disabled
+              type="button"
+              aria-label="Google login unavailable"
+              className="w-full flex items-center justify-center gap-3 bg-slate-100 border-2 border-slate-200 text-slate-500 font-semibold py-3.5 rounded-2xl mb-5 shadow-sm cursor-not-allowed"
+            >
+              <GoogleIcon />
+              <span>Google login unavailable</span>
+            </button>
+          )}
+
+          {/* Divider */}
+          <div className="flex items-center gap-4 mb-5" aria-hidden="true">
+            <div className="h-px bg-slate-200 flex-1" />
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">or</span>
+            <div className="h-px bg-slate-200 flex-1" />
           </div>
 
-          <div className="mb-8">
-            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Welcome back</h2>
-            <p className="text-slate-500 text-sm mt-1.5 font-medium">
-              Sign in to continue to your library account
-            </p>
-          </div>
-
-          <motion.div
-            animate={shake ? { x: [0, -10, 10, -6, 6, 0] } : { x: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            {/* Cooldown banner */}
-            {cooldownRemaining > 0 && (
-              <div className="mb-5">
-                <CooldownBanner remaining={cooldownRemaining} />
-              </div>
-            )}
-
-            {/* Google */}
-            {GOOGLE_AUTH_ENABLED ? (
-              <GoogleLoginButton
-                disabled={isDisabled}
-                loading={googleLoading}
-                onGoogleSuccess={handleGoogleSuccess}
-                onGoogleError={handleGoogleError}
-              />
-            ) : (
-              <button
-                disabled
-                type="button"
-                aria-label="Google login unavailable"
-                className="w-full flex items-center justify-center gap-3 bg-slate-100 border-2 border-slate-200 text-slate-500 font-semibold py-3.5 rounded-2xl mb-5 shadow-sm cursor-not-allowed"
-              >
-                <GoogleIcon />
-                <span>Google login unavailable</span>
-              </button>
-            )}
-
-            {/* Divider */}
-            <div className="flex items-center gap-4 mb-5" aria-hidden="true">
-              <div className="h-px bg-slate-200 flex-1" />
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">or</span>
-              <div className="h-px bg-slate-200 flex-1" />
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleLogin} className="space-y-4" noValidate>
+          {/* Form */}
+          <form onSubmit={handleLogin} className="space-y-4" noValidate>
 
               {/* Username */}
               <div className="space-y-1.5">
@@ -562,25 +500,24 @@ const Login = () => {
                   </>
                 )}
               </motion.button>
-            </form>
+          </form>
 
-            {/* Register link */}
-            <p className="mt-7 text-center text-sm text-slate-500 font-medium">
-              Don't have an account?{" "}
-              <Link
-                to="/register"
-                className="text-[#002147] font-bold hover:text-cyan-600 transition-colors focus:outline-none focus:underline"
-              >
-                Create Account
-              </Link>
-            </p>
-          </motion.div>
+          {/* Register link */}
+          <p className="mt-7 text-center text-sm text-slate-500 font-medium">
+            Don't have an account?{" "}
+            <Link
+              to="/register"
+              className="text-[#002147] font-bold hover:text-cyan-600 transition-colors focus:outline-none focus:underline"
+            >
+              Create Account
+            </Link>
+          </p>
 
-          <p className="mt-12 text-center text-xs text-slate-400">
+          <p className="mt-10 text-center text-xs text-slate-400">
             &copy; {new Date().getFullYear()} Markaz Library System &bull; Secure Access
           </p>
         </motion.div>
-      </div>
+      </motion.div>
 
       {/* Dev credentials */}
       {process.env.NODE_ENV === "development" && (

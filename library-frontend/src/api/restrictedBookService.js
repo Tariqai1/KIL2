@@ -150,8 +150,15 @@ const getAllRequests = async () => {
 const getRequestsCount = async () => {
   try {
     ensureLoggedIn();
-    const res = await apiClient.get(`${REQUEST_URL}/count`);
-    return res.data || { total: 0, pending: 0, approved: 0, rejected: 0 };
+    try {
+      const res = await apiClient.get(`${REQUEST_URL}/count`);
+      return res.data || { total: 0, pending: 0, approved: 0, rejected: 0 };
+    } catch (countError) {
+      if (countError?.response?.status !== 404) throw countError;
+
+      const fallback = await apiClient.get(`${REQUEST_URL}/counts`);
+      return fallback.data || { total: 0, pending: 0, approved: 0, rejected: 0 };
+    }
   } catch (error) {
     console.error("❌ Error fetching request counts:", error);
     return { total: 0, pending: 0, approved: 0, rejected: 0 };

@@ -65,6 +65,10 @@ def setup_initial_data():
             { 'name': 'DIGITAL_ACCESS_VIEW', 'description': 'View digital access / e-resource records.' },
             { 'name': 'BOOK_PERMISSION_MANAGE', 'description': 'Grant or revoke special book-level permissions for users.' },
             { 'name': 'BOOK_PERMISSION_VIEW', 'description': 'View book-level permission grants.' },
+            { 'name': 'HOMEPAGE_BRANDING_MANAGE', 'description': 'Edit homepage theme, language, title, and hero badge.' },
+            { 'name': 'HOMEPAGE_CONTENT_MANAGE', 'description': 'Edit homepage section content, headings, and featured books.' },
+            { 'name': 'HOMEPAGE_LAYOUT_MANAGE', 'description': 'Edit homepage layout extras and optional blocks.' },
+            { 'name': 'HOMEPAGE_VISIBILITY_MANAGE', 'description': 'Show/hide homepage sections for public users.' },
             { 'name': 'HOMEPAGE_SEARCH_MANAGE', 'description': 'Edit homepage search features: hints, voice, deep search, suggestions, and placeholder text.' }
         ]
 
@@ -128,7 +132,11 @@ def setup_initial_data():
             
             elif role_name == "Manager":
                 # Manager gets most things except system configs
-                allowed = ['BOOK_MANAGE', 'BOOK_ISSUE', 'USER_VIEW', 'REQUEST_APPROVE', 'REQUEST_MANAGE', 'LOG_VIEW', 'HOMEPAGE_SEARCH_MANAGE']
+                allowed = [
+                    'BOOK_MANAGE', 'BOOK_ISSUE', 'USER_VIEW', 'REQUEST_APPROVE', 'REQUEST_MANAGE', 'LOG_VIEW',
+                    'HOMEPAGE_BRANDING_MANAGE', 'HOMEPAGE_CONTENT_MANAGE', 'HOMEPAGE_LAYOUT_MANAGE',
+                    'HOMEPAGE_VISIBILITY_MANAGE', 'HOMEPAGE_SEARCH_MANAGE'
+                ]
                 perms_to_assign = [all_perms_map[p] for p in allowed if p in all_perms_map]
 
             elif role_name == "Editor":

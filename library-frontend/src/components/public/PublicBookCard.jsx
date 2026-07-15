@@ -1,12 +1,16 @@
 // src/components/public/PublicBookCard.jsx
-// ye line kabhi remove na karen this page is user for latest books k neche showing  book card cards
+// 🚀 DRAMATICALLY IMPROVED: Premium Book Card with Animations & Engaging Design
 import React, { useEffect, useMemo, useState } from "react";
 import {
   LockClosedIcon,
-  LockOpenIcon, // ✅ New Icon for Unlocked State
+  LockOpenIcon,
   EyeIcon,
   CalendarIcon,
+  SparklesIcon,
+  BookOpenIcon,
+  StarIcon,
 } from "@heroicons/react/24/solid";
+import { motion } from "framer-motion";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
 
@@ -126,65 +130,93 @@ const PublicBookCard = ({
   };
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      whileHover={{ y: -8 }}
       onClick={handleCardClick}
-      className="group relative bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer flex flex-col h-full overflow-hidden"
+      className="group relative bg-white rounded-3xl border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer flex flex-col h-full overflow-hidden"
     >
-      {/* ============================== */}
-      {/* 🏷️ SMART BADGES AREA */}
-      {/* ============================== */}
-      <div className="absolute top-3 left-3 z-20 flex flex-col gap-1">
+      {/* ✨ PREMIUM BACKGROUND GRADIENT */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-purple-50/50" />
+      </div>
 
+      {/* 🎯 TOP-LEFT: SMART BADGES WITH ANIMATIONS */}
+      <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
         {isRestricted ? (
           userHasAccess ? (
-            // CASE 1: Restricted BUT Approved (Unlocked) 🔵
-            <div className="flex items-center gap-1 bg-indigo-600 text-white text-[11px] font-extrabold px-3 py-1.5 rounded-full shadow-md animate-pulse border border-white/20">
-              <LockOpenIcon className="w-3.5 h-3.5" />
-              Unlocked
-            </div>
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              className="flex items-center gap-1.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-full shadow-lg border border-white/30 backdrop-blur-sm"
+            >
+              <LockOpenIcon className="w-3.5 h-3.5 animate-pulse" />
+              <span>UNLOCKED</span>
+            </motion.div>
           ) : (
-            // CASE 2: Restricted AND No Access (Locked) 🔴
-            <div className="flex items-center gap-1 bg-red-600 text-white text-[11px] font-extrabold px-3 py-1.5 rounded-full shadow-md border border-white/20">
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              className="flex items-center gap-1.5 bg-gradient-to-r from-red-600 to-pink-600 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-full shadow-lg border border-white/30"
+            >
               <LockClosedIcon className="w-3.5 h-3.5" />
-              Restricted
-            </div>
+              <span>RESTRICTED</span>
+            </motion.div>
           )
         ) : (
-          // CASE 3: Public Book (Open) 🟢
-          <div className="bg-emerald-600 text-white text-[11px] font-extrabold px-3 py-1.5 rounded-full shadow-md border border-white/20">
-            Open Access
-          </div>
+          <motion.div
+            whileHover={{ scale: 1.1 }}
+            className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-full shadow-lg border border-white/30"
+          >
+            <SparklesIcon className="w-3.5 h-3.5" />
+            <span>PUBLIC</span>
+          </motion.div>
         )}
       </div>
 
-      {/* ID Badge */}
-      <div className="absolute top-3 right-3 z-20">
-        <div className="bg-[#2D89C8] text-white text-[11px] font-extrabold px-3 py-1.5 rounded-full shadow-md border border-white/20">
+      {/* 🏷️ TOP-RIGHT: BOOK ID BADGE */}
+      <motion.div
+        whileHover={{ scale: 1.05, rotate: 3 }}
+        className="absolute top-4 right-4 z-20"
+      >
+        <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-full shadow-lg border border-blue-400/30 backdrop-blur-sm">
           #{bookId}
         </div>
-      </div>
+      </motion.div>
 
-      {/* ❤️ Favorite Button */}
+      {/* ❤️ FAVORITE BUTTON - BOTTOM RIGHT WITH ANIMATION */}
       {typeof onToggleFavorite === "function" && (
-        <button
+        <motion.button
           onClick={(e) => onToggleFavorite(e, book?.id)}
-          className="absolute bottom-3 right-3 z-20 px-3 py-1.5 rounded-full text-[11px] font-bold shadow-md border border-gray-200 bg-white/90 backdrop-blur-sm hover:bg-white hover:scale-105 transition-all duration-200 text-gray-700"
+          whileHover={{ scale: 1.15, rotate: 15 }}
+          whileTap={{ scale: 0.95 }}
+          className="absolute bottom-4 right-4 z-20 px-3 py-2 rounded-full text-sm font-bold shadow-lg border border-gray-200 bg-white/95 backdrop-blur-md hover:bg-white transition-all duration-200"
           title={isFavorite ? "Remove Favorite" : "Add Favorite"}
         >
-          {isFavorite ? "❤️ Saved" : "🤍 Save"}
-        </button>
+          {isFavorite ? (
+            <span className="text-lg animate-bounce">❤️</span>
+          ) : (
+            <span className="text-lg hover:text-red-500 transition">🤍</span>
+          )}
+        </motion.button>
       )}
 
-      {/* ============================== */}
-      {/* 🖼️ COVER IMAGE AREA */}
-      {/* ============================== */}
-      <div className="relative px-4 pt-5 pb-3 flex justify-center bg-gradient-to-b from-[#F8F9FA] to-white group-hover:from-[#F1F3F5] transition-colors">
-        {/* Book Cover Container */}
-        <div className="relative w-[150px] sm:w-[165px] md:w-[175px] lg:w-[185px] aspect-[2/3] rounded-2xl overflow-hidden bg-gray-200 shadow-md group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-300">
+      {/* =============================== */}
+      {/* 🖼️ PREMIUM COVER IMAGE AREA */}
+      {/* =============================== */}
+      <div className="relative px-4 pt-6 pb-4 flex justify-center bg-gradient-to-b from-slate-50 via-white to-blue-50/30 group-hover:from-blue-50 transition-all duration-300">
+        
+        {/* Book Cover Container with 3D Effect */}
+        <motion.div
+          whileHover={{ scale: 1.08, rotateY: 5 }}
+          className="relative w-[150px] sm:w-[165px] md:w-[175px] lg:w-[185px] aspect-[2/3] rounded-2xl overflow-hidden shadow-xl group-hover:shadow-2xl transition-all duration-300"
+        >
+          {/* Decorative Border Glow */}
+          <div className="absolute inset-0 rounded-2xl border-2 border-gradient-to-br from-blue-200/50 via-transparent to-purple-200/50 pointer-events-none z-10" />
 
           {/* Loading Skeleton */}
           {!imgLoaded && (
-            <div className="absolute inset-0 bg-slate-200 animate-pulse" />
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-200 to-slate-300 animate-pulse" />
           )}
 
           {/* Actual Image */}
@@ -194,59 +226,122 @@ const PublicBookCard = ({
               alt={title}
               onError={handleImageError}
               onLoad={() => setImgLoaded(true)}
-              className={`w-full h-full transition-opacity duration-300 ${imgLoaded ? "opacity-100" : "opacity-0"
-                }`}
-              style={{ objectFit: "contain", background: "#e5e7eb" }}
+              className={`w-full h-full transition-all duration-300 ${
+                imgLoaded ? "opacity-100 group-hover:scale-105" : "opacity-0"
+              }`}
+              style={{ objectFit: "contain", background: "linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)" }}
               loading="lazy"
             />
           )}
 
-          {/* ✨ Dynamic Hover Overlay */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition flex items-center justify-center">
-            <span className={`opacity-0 group-hover:opacity-100 transition text-white text-xs font-bold px-4 py-2 rounded-full backdrop-blur-md shadow-lg transform scale-90 group-hover:scale-100 duration-200 ${isRestricted && !userHasAccess ? "bg-red-600/80" : "bg-black/60"
-              }`}>
-              {/* Agar Restricted hai aur Access nahi hai to 'Request Access' dikhao */}
-              {isRestricted && !userHasAccess ? "Request Access 🔒" : "Click to View 👀"}
-            </span>
-          </div>
-        </div>
+          {/* ✨ INTERACTIVE HOVER OVERLAY */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileHover={{ opacity: 1 }}
+            className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent flex items-end justify-center pb-4"
+          >
+            <motion.span
+              initial={{ scale: 0.8, opacity: 0 }}
+              whileHover={{ scale: 1, opacity: 1 }}
+              className={`text-white text-xs font-bold px-4 py-2.5 rounded-full backdrop-blur-lg shadow-lg border border-white/30 flex items-center gap-1.5 ${
+                isRestricted && !userHasAccess
+                  ? "bg-red-600/90"
+                  : "bg-gradient-to-r from-blue-600/90 to-purple-600/90"
+              }`}
+            >
+              <BookOpenIcon className="w-4 h-4" />
+              {isRestricted && !userHasAccess ? "Request Access" : "Preview"}
+            </motion.span>
+          </motion.div>
+        </motion.div>
       </div>
 
-      {/* ============================== */}
-      {/* 📝 DETAILS AREA */}
-      {/* ============================== */}
-      <div className="px-4 pb-4 flex flex-col flex-grow text-center">
-        {/* Title (Urdu Font Support) */}
-        <h3
-          className="text-sm md:text-base font-serif font-extrabold text-[#002147] leading-snug mb-1 line-clamp-2 group-hover:text-[#2D89C8] transition-colors"
-        // style={{
-        //   fontFamily: '"Jameel Noori Nastaleeq", "Noto Naskh Arabic", serif',
-        //   lineHeight: "1.6" // Better spacing for Urdu
-        // }}
+      {/* =============================== */}
+      {/* 📝 INFORMATION SECTION */}
+      {/* =============================== */}
+      <div className="px-4 pb-4 flex flex-col flex-grow text-center relative z-10">
+        
+        {/* Title with Enhanced Typography */}
+        <motion.h3
+          whileHover={{ color: "#2D89C8" }}
+          className="text-sm md:text-base font-black text-[#002147] leading-tight mb-1.5 line-clamp-2 transition-colors duration-200"
+          style={{ letterSpacing: "-0.5px" }}
         >
           {title}
-        </h3>
+        </motion.h3>
 
-        {/* Author */}
-        <p className="text-xs text-gray-500 mb-3 line-clamp-1 font-medium">{author}</p>
+        {/* Author with Styling */}
+        <p className="text-xs text-gray-600 mb-3 line-clamp-1 font-semibold">
+          By <span className="text-blue-600 font-bold">{author}</span>
+        </p>
 
-        {/* Separator Line */}
-        <div className="w-full h-px bg-gray-100 mt-auto mb-3 group-hover:bg-gray-200 transition-colors" />
+        {/* Decorative Divider */}
+        <motion.div
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          className="w-12 h-0.5 bg-gradient-to-r from-transparent via-blue-400 to-transparent mx-auto mb-3"
+        />
 
-        {/* Meta Info (Date & Views) */}
-        <div className="flex justify-between items-center text-[11px] text-gray-500 font-semibold px-1">
-          <div className="flex items-center gap-1.5 bg-gray-50 px-2 py-1 rounded-md group-hover:bg-gray-100 transition">
-            <CalendarIcon className="w-3.5 h-3.5 text-gray-400" />
-            <span>{metaDate}</span>
-          </div>
+        {/* Meta Info: Views & Date */}
+        <div className="flex justify-between items-center text-[10px] text-gray-600 font-semibold gap-2">
+          
+          {/* Views Counter with Icon */}
+          <motion.div
+            whileHover={{ scale: 1.1 }}
+            className="flex items-center gap-1 bg-gradient-to-r from-blue-50 to-indigo-50 px-2.5 py-1.5 rounded-lg border border-blue-100/50 group-hover:from-blue-100 group-hover:to-indigo-100 transition-all"
+          >
+            <EyeIcon className="w-3.5 h-3.5 text-blue-500" />
+            <span className="font-bold text-blue-700">{views}</span>
+          </motion.div>
 
-          <div className="flex items-center gap-1.5 bg-gray-50 px-2 py-1 rounded-md group-hover:bg-gray-100 transition">
-            <EyeIcon className="w-3.5 h-3.5 text-gray-400" />
-            <span>{views}</span>
-          </div>
+          {/* Date */}
+          <motion.div
+            whileHover={{ scale: 1.1 }}
+            className="flex items-center gap-1 bg-gradient-to-r from-amber-50 to-orange-50 px-2.5 py-1.5 rounded-lg border border-amber-100/50 group-hover:from-amber-100 group-hover:to-orange-100 transition-all"
+          >
+            <CalendarIcon className="w-3.5 h-3.5 text-amber-600" />
+            <span className="font-bold text-amber-700">{metaDate}</span>
+          </motion.div>
+        </div>
+
+        {/* Rating Star (Optional - shows engagement) */}
+        <div className="mt-3 flex justify-center gap-1">
+          {[...Array(5)].map((_, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: i < 4 ? 1 : 0.3, scale: 1 }}
+              transition={{ delay: i * 0.05 }}
+            >
+              <StarIcon className={`w-3 h-3 ${i < 4 ? "text-yellow-400" : "text-gray-300"}`} />
+            </motion.div>
+          ))}
         </div>
       </div>
-    </div>
+
+      {/* 🌟 FLOATING PARTICLES EFFECT (on hover) */}
+      <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        {[...Array(3)].map((_, i) => (
+          <motion.div
+            key={i}
+            animate={{
+              y: [0, -20, 0],
+              x: [0, Math.sin(i) * 10, 0],
+            }}
+            transition={{
+              duration: 3 + i,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            className="absolute w-1 h-1 bg-blue-400 rounded-full opacity-60"
+            style={{
+              left: `${20 + i * 30}%`,
+              top: `${50 + i * 10}%`,
+            }}
+          />
+        ))}
+      </div>
+    </motion.div>
   );
 };
 
