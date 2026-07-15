@@ -27,6 +27,9 @@ limiter = Limiter(key_func=get_remote_address) if Limiter else None
 # ✅ NEW: Error logging utilities (Issue #7 Fix)
 from utils.error_handler import log_error
 
+# ✅ NEW: Migration Runner (Issue #8 Fix - Render deployment)
+from migration_runner import run_migrations
+
 # --- Import Database & Models ---
 from database import engine, Base, get_db
 from models import user_model, permission_model, library_management_models, token_blacklist_model
@@ -72,8 +75,11 @@ async def lifespan(app: FastAPI):
     print("Checking database tables...")
     Base.metadata.create_all(bind=engine)
     print("✅ Database tables verified.")
+    
+    # 2. Run Database Migrations
+    run_migrations()
 
-    # 2. Initialize Rate Limiter (slowapi - no Redis needed)
+    # 3. Initialize Rate Limiter (slowapi - no Redis needed)
     if limiter:
         print("✅ Rate Limiter Initialized")
     else:
