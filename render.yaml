@@ -8,9 +8,7 @@ services:
     
     # ✅ Build command - install from root, knows how to find library_backend
     buildCommand: |
-      pip install --upgrade pip
-      pip install -r library_backend/requirements.txt
-      cd library_backend && alembic upgrade head
+      pip install --upgrade pip && pip install -r library_backend/requirements.txt
     
     # ✅ CRITICAL: Use app.py which handles imports from anywhere
     startCommand: python app.py
