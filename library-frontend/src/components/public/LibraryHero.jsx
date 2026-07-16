@@ -148,7 +148,7 @@ const LibraryHero = () => {
       </div>
 
       {/* ================= DAY / NIGHT TOGGLE ================= */}
-      <button
+      {/* <button
         onClick={() => setNight(!night)}
         className="absolute top-5 right-5 z-20 bg-white/10 backdrop-blur-md
         p-2 rounded-full border border-white/20"
@@ -158,7 +158,7 @@ const LibraryHero = () => {
         ) : (
           <MoonIcon className="w-5 h-5 text-indigo-300" />
         )}
-      </button>
+      </button> */}
 
       {/* ================= CONTENT ================= */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-20">

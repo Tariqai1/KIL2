@@ -1,15 +1,23 @@
 import os
 import uuid
 import shutil
+from pathlib import Path
 from fastapi import UploadFile
 
-# Define base paths (matching your main.py setup)
-PDF_DIR = "static/uploads/pdfs"
-TXT_DIR = "static/uploads/texts"
+# Resolve paths relative to this file so uploads work reliably from any working directory
+BASE_DIR = Path(__file__).resolve().parent.parent
+PDF_DIR = BASE_DIR / "static" / "uploads" / "pdfs"
+TXT_DIR = BASE_DIR / "static" / "uploads" / "texts"
 
 # Ensure directories exist
-os.makedirs(PDF_DIR, exist_ok=True)
-os.makedirs(TXT_DIR, exist_ok=True)
+PDF_DIR.mkdir(parents=True, exist_ok=True)
+TXT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _ensure_dir(path):
+    path_obj = Path(path)
+    path_obj.mkdir(parents=True, exist_ok=True)
+    return path_obj
 
 def save_pdf_locally(file: UploadFile):
     """Saves a PDF file locally and returns the public URL path."""
@@ -19,16 +27,19 @@ def save_pdf_locally(file: UploadFile):
     try:
         print(f"🚀 Saving PDF locally: {file.filename}")
         
-        if not file.filename.lower().endswith(".pdf"):
+        file_ext = Path(file.filename or "file.pdf").suffix.lower()
+        if file_ext != ".pdf":
             print("❌ Only PDF files allowed for this field")
             return None
                 
         # Generate unique filename
-        file_ext = file.filename.split(".")[-1]
-        unique_filename = f"{uuid.uuid4()}.{file_ext}"
-        file_path = os.path.join(PDF_DIR, unique_filename)
+        unique_filename = f"{uuid.uuid4()}{file_ext}"
+        upload_dir = _ensure_dir(PDF_DIR)
+        file_path = upload_dir / unique_filename
         
         # Save file to the local directory
+        if hasattr(file.file, "seek"):
+            file.file.seek(0)
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
             
@@ -49,16 +60,20 @@ def save_txt_locally(file: UploadFile):
     try:
         print(f"🚀 Saving TXT locally: {file.filename}")
         
-        if not file.filename.lower().endswith(".txt"):
-            print("❌ Only TXT files allowed for this field")
+        file_ext = Path(file.filename or "file.txt").suffix.lower()
+        allowed_extensions = {".txt", ".md", ".docx", ".rtf", ".html", ".json", ".csv", ".xml"}
+        if file_ext not in allowed_extensions:
+            print("❌ Unsupported text file extension")
             return None
                 
         # Generate unique filename
-        file_ext = file.filename.split(".")[-1]
-        unique_filename = f"{uuid.uuid4()}.{file_ext}"
-        file_path = os.path.join(TXT_DIR, unique_filename)
+        unique_filename = f"{uuid.uuid4()}{file_ext}"
+        upload_dir = _ensure_dir(TXT_DIR)
+        file_path = upload_dir / unique_filename
         
         # Save file to the local directory
+        if hasattr(file.file, "seek"):
+            file.file.seek(0)
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
             

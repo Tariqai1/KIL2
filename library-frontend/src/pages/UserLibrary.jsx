@@ -1,16 +1,18 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation, useSearchParams } from "react-router-dom";
 
 // --- Services + Hooks ---
 import { bookService } from "../api/bookService";
+import { categoryService } from "../api/categoryService";
 import { useBookSearch } from "../hooks/useBookSearch";
 import useAuth from "../hooks/useAuth";
 
 // --- Components ---
 import RestrictedAccessFlow from "../components/book/RestrictedAccessFlow";
 import SuccessScreen from "../components/RestrictedAccess/SuccessScreen";
+import LibrarySearchStrip from "../components/public/LibrarySearchStrip";
 import { getBookCover } from "../utils/cover";
 
 // --- Icons (Outline - for UI) ---
@@ -248,10 +250,14 @@ const PublicBookCard = ({
 const UserLibrary = () => {
   const navigate = useNavigate();
   const { user, isAuth } = useAuth();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
 
   // --- STATE ---
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const activeRequestRef = useRef(0);
+  const [dynamicCategories, setDynamicCategories] = useState([]);  // ✅ Dynamic Categories from DB
 
   const [sortBy, setSortBy] = useState("newest");
 
@@ -280,16 +286,31 @@ const UserLibrary = () => {
 
   // --- CATEGORIES ---
   const categories = useMemo(
-    () => [
-      { value: "all", label: "All Categories" },
-      { value: "aqeedah_fiqh", label: "Aqeedah & Fiqh" },
-      { value: "quran_sciences", label: "Quran & Sciences" },
-      { value: "history_seerah", label: "History & Seerah" },
-      { value: "literature", label: "Literature & Adab" },
-      { value: "science_tech", label: "Science & Tech" },
-      { value: "islamic_studies", label: "General Islamic Studies" },
-    ],
-    []
+    () => {
+      // ✅ If dynamic categories loaded from DB, use them
+      if (dynamicCategories.length > 0) {
+        return [
+          { value: "all", label: "All Categories" },
+          ...dynamicCategories.map(cat => ({
+            value: cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '_'),
+            label: cat.name || cat.category_name,
+            id: cat.id
+          }))
+        ];
+      }
+      
+      // ✅ Fallback to hardcoded if DB load fails
+      return [
+        { value: "all", label: "All Categories" },
+        { value: "aqeedah_fiqh", label: "Aqeedah & Fiqh" },
+        { value: "quran_sciences", label: "Quran & Sciences" },
+        { value: "history_seerah", label: "History & Seerah" },
+        { value: "literature", label: "Literature & Adab" },
+        { value: "science_tech", label: "Science & Tech" },
+        { value: "islamic_studies", label: "General Islamic Studies" },
+      ];
+    },
+    [dynamicCategories]
   );
 
   // --- SEARCH HOOK ---
@@ -303,27 +324,85 @@ const UserLibrary = () => {
     filteredBooks,
   } = useBookSearch(books);
 
-  // --- EFFECTS ---
-  useEffect(() => {
-    fetchBooks();
+  const fetchBooks = async (searchText = "") => {
+    const requestId = ++activeRequestRef.current;
+    setLoading(true);
 
+    try {
+      const trimmed = searchText?.trim() || "";
+      const data = await bookService.getAllBooks({
+        approved_only: true,
+        search: trimmed,
+        limit: 300,
+      });
+
+      if (requestId === activeRequestRef.current) {
+        setBooks(Array.isArray(data) ? data : data?.books || []);
+      }
+    } catch (error) {
+      console.error(error);
+      if (requestId === activeRequestRef.current) {
+        toast.error("Failed to load library.");
+      }
+    } finally {
+      if (requestId === activeRequestRef.current) {
+        setLoading(false);
+      }
+    }
+  };
+
+  // --- EFFECTS ---
+  // ✅ NEW: Fetch categories from database (admin-added)
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await categoryService.getAllCategories();
+        const categoryList = Array.isArray(data) ? data : data?.categories || [];
+        setDynamicCategories(categoryList);
+        console.log("✅ Dynamic categories loaded:", categoryList);
+      } catch (error) {
+        console.warn("⚠️ Could not load categories from DB, using fallback:", error);
+        setDynamicCategories([]);
+      }
+    };
+
+    loadCategories();
+  }, []);
+
+  // ✅ NEW: Apply search from URL params or navigation state
+  useEffect(() => {
+    // Only run once books have loaded and we have books to search through
+    if (loading || !Array.isArray(books) || books.length === 0) return;
+
+    const urlSearch = searchParams.get('search');
+    const stateSearch = location.state?.preSearch;
+    const searchValue = urlSearch || stateSearch;
+
+    if (searchValue && searchValue.trim()) {
+      console.log("✅ Setting search term from URL/state:", searchValue);
+      setSearchTerm(searchValue);
+
+      // Smooth scroll to grid
+      setTimeout(() => {
+        const el = document.getElementById("book-grid");
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      }, 200);
+    }
+  }, [loading, books.length, searchParams.toString(), location.state?.preSearch, setSearchTerm]);
+
+  useEffect(() => {
+    const handler = window.setTimeout(() => {
+      fetchBooks(searchTerm);
+    }, 350);
+
+    return () => window.clearTimeout(handler);
+  }, [searchTerm]);
+
+  useEffect(() => {
     const handleScroll = () => setShowScrollTop(window.scrollY > 400);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const fetchBooks = async () => {
-    setLoading(true);
-    try {
-      const data = await bookService.getAllBooks(0, 300);
-      setBooks(Array.isArray(data) ? data : data?.books || []);
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to load library.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // --- HELPERS ---
   const safeText = (v, f = "") => {
@@ -455,26 +534,17 @@ const UserLibrary = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="relative max-w-2xl mx-auto mt-8"
+            className="mx-auto mt-8 max-w-4xl"
           >
-            <div className="relative flex items-center bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl">
-              <MagnifyingGlassIcon className="absolute left-5 h-6 w-6 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search books, authors, or topics..."
-                className="w-full pl-14 pr-12 py-4 bg-transparent text-white placeholder-slate-400/80 text-lg font-medium focus:outline-none"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="absolute right-4 p-1 text-slate-400 hover:text-white"
-                >
-                  <XMarkIcon className="w-5 h-5" />
-                </button>
-              )}
-            </div>
+            <LibrarySearchStrip
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              title="Library Search"
+              subtitle="Search the library collection"
+              description="Search by title, author, language, category, and deep-book content with a premium discovery experience."
+              placeholder="Search by title, author, or ISBN..."
+              showHint={true}
+            />
           </motion.div>
         </div>
       </div>
@@ -608,6 +678,7 @@ const UserLibrary = () => {
 
                 {/* GRID / LIST */}
                 <motion.div
+                  id="book-grid"
                   initial="hidden"
                   whileInView="show"
                   viewport={{ once: true }}

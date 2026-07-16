@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, Text, ForeignKey, Table, TIMESTAMP, DateTime, func, Float, Date
+from sqlalchemy import Column, Integer, String, Boolean, Text, ForeignKey, Table, TIMESTAMP, DateTime, func, Float, Date, Index
 from sqlalchemy.orm import relationship
 from database import Base
 from datetime import datetime
@@ -110,7 +110,16 @@ class Book(Base):
     upload_request = relationship("UploadRequest", back_populates="book", cascade="all, delete-orphan", uselist=False)
     requests = relationship("BookRequest", cascade="all, delete-orphan")
     
-    __table_args__ = {'mysql_engine': 'InnoDB'}
+    # ✅ COMPOSITE INDEXES FOR PERFORMANCE (Issue #9 Fix)
+    __table_args__ = (
+        Index('idx_book_title_author', 'title', 'author'),  # Composite: title + author
+        Index('idx_book_search', 'title', 'author', 'isbn'),  # Composite: title + author + isbn
+        Index('idx_book_approved_deleted', 'is_approved', 'deleted_at'),  # Approved books
+        Index('idx_book_restricted', 'is_restricted', 'deleted_at'),  # Restricted books
+        Index('idx_book_location', 'location_id', 'deleted_at'),  # Location filter
+        Index('idx_book_language', 'language_id', 'deleted_at'),  # Language filter
+        {'mysql_engine': 'InnoDB'}
+    )
 
     # 🔥🔥🔥 MAGIC FIX STARTS HERE 🔥🔥🔥
     # Ye property backend ko "Smart" banati hai.

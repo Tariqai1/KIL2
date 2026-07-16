@@ -11,8 +11,10 @@ def create_log(db: Session, user, action_type: str, description: str, target_typ
     Database mein audit log entry create karta hai.
     """
     try:
+        # Ensure action_by_id is recorded so frontend can show who performed the action
         new_log = log_model.Log(
             user_id=user.id if user else None,
+            action_by_id=user.id if user else None,
             action_type=action_type,
             description=description,
             target_type=target_type,

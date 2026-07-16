@@ -29,7 +29,7 @@ export const bookService = {
                 }
             }
 
-            const response = await apiClient.get('/api/books', {
+            const response = await apiClient.get('/api/books/', {
                 params,
             });
             return response.data;

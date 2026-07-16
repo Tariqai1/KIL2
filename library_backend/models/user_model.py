@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, func, TIMESTAMP, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, func, TIMESTAMP, DateTime, Index
 from sqlalchemy.orm import relationship
 from database import Base
 from datetime import datetime
@@ -92,4 +92,11 @@ class User(Base):
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
     deleted_at = Column(DateTime, nullable=True)
 
-    __table_args__ = {"mysql_engine": "InnoDB"}
+    # ✅ COMPOSITE INDEXES FOR PERFORMANCE (Issue #9 Fix)
+    __table_args__ = (
+        Index('idx_user_username_status', 'Username', 'Status'),  # Username + Status
+        Index('idx_user_email_status', 'Email', 'Status'),  # Email + Status lookup
+        Index('idx_user_role_status', 'RoleID', 'Status'),  # Role filter
+        Index('idx_user_active', 'Status', 'deleted_at'),  # Active users query
+        {'mysql_engine': 'InnoDB'}
+    )

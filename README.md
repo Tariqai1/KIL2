@@ -390,4 +390,51 @@ Fix: Ensure tailwind.config.js content paths are correct and restart npm run dev
 
 [ ] Add QR Code scanning for Book Issue.
 
+---
+
+## Permissions
+
+We use role-based permissions to gate admin features. A new permission was added:
+
+- `HOMEPAGE_SEARCH_MANAGE` — Manage homepage search settings (show hint, voice search, deep search, suggestions, and placeholder text).
+
+Ways to manage this permission:
+
+- Admin UI (recommended):
+    - Open the Admin panel -> Roles & Permissions.
+    - Select a role, use the **Assign to Role** or **Remove from Role** buttons to add or revoke `HOMEPAGE_SEARCH_MANAGE`.
+
+- API:
+    - List permissions: `GET /api/permissions/permissions`.
+    - Get role details: `GET /api/permissions/roles/{role_id}`.
+    - Assign permissions to a role: `POST /api/permissions/roles/{role_id}/permissions` with JSON body: `{"permission_ids":[1,2,26]}`.
+
+- Seed scripts:
+    - `library_backend/scripts/assign_homepage_search_permission.py` — creates the permission (if missing) and assigns it to `Admin` and `Manager`.
+    - `library_backend/setup_admin.py` — updated to include `HOMEPAGE_SEARCH_MANAGE` in initial permission seeds.
+
+Files updated / relevant:
+
+- Frontend:
+    - `library-frontend/src/pages/RolePermissionManagement.jsx` — quick helper, assign/remove buttons, and tooltip added for convenience.
+    - `library-frontend/src/components/admin/HomepageCustomizer.jsx` — UI now restricts editing search settings to users with `HOMEPAGE_SEARCH_MANAGE`.
+
+- Backend:
+    - `library_backend/controllers/settings_controller.py` — server-side enforcement: updates to `sections.search` require `HOMEPAGE_SEARCH_MANAGE` (admins still bypass).
+
+Quick commands
+
+Run seed (creates permission + assigns to Admin/Manager):
+```bash
+python library_backend/scripts/assign_homepage_search_permission.py
+```
+
+Verify via API (example using Python helper scripts included):
+```bash
+python library_backend/scripts/fetch_roles_with_token.py   # prints token + roles (authenticated)
+python library_backend/scripts/get_role_detail.py 1        # prints Admin role detail
+```
+
+If you want, I can also add a short entry to the Admin docs explaining who should receive `HOMEPAGE_SEARCH_MANAGE` (recommended: Admin + Manager). 
+
 [ ] Dark Mode toggle.

@@ -384,12 +384,14 @@ const AccessRequests = () => {
                                 <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-600">{viewModal.data.name?.[0]}</div>
                                 <span className="font-bold text-slate-800">{safeText(viewModal.data.name)}</span>
                              </div>
-                             <div className="flex items-center gap-2 text-sm text-slate-600">
-                                <PhoneIcon className="w-4 h-4 text-slate-400" /> {safeText(viewModal.data.whatsapp)}
-                             </div>
-                             <div className="flex items-center gap-2 text-sm text-slate-600">
-                                <BuildingLibraryIcon className="w-4 h-4 text-slate-400" /> {safeText(viewModal.data.institution)}
-                             </div>
+                              <div className="flex flex-col gap-2 text-sm text-slate-600">
+                                <div className="flex items-center gap-2"><PhoneIcon className="w-4 h-4 text-slate-400" /> {safeText(viewModal.data.whatsapp)}</div>
+                                <div className="flex items-center gap-2"><BuildingLibraryIcon className="w-4 h-4 text-slate-400" /> {safeText(viewModal.data.institution)}</div>
+                                <div className="flex items-center gap-2"><span className="text-xs text-slate-400">Age:</span> <span className="font-medium">{safeText(viewModal.data.age, 'N/A')}</span></div>
+                                <div className="flex items-center gap-2"><span className="text-xs text-slate-400">Qualification:</span> <span className="font-medium">{safeText(viewModal.data.qualification, 'N/A')}</span></div>
+                                <div className="flex items-center gap-2"><span className="text-xs text-slate-400">Teachers / References:</span> <span className="font-medium">{safeText(viewModal.data.teachers, 'N/A')}</span></div>
+                                <div className="flex items-center gap-2"><span className="text-xs text-slate-400">Location:</span> <span className="font-medium">{safeText(viewModal.data.location, 'N/A')}</span></div>
+                              </div>
                           </div>
                        </div>
 
@@ -417,6 +419,22 @@ const AccessRequests = () => {
                           <div className="p-4 bg-slate-50 rounded-xl text-sm leading-relaxed text-slate-700 border border-slate-100">
                              {safeText(viewModal.data.purpose)}
                           </div>
+                            {/* Detailed Book Metadata for Admin */}
+                             <div>
+                              <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Book Metadata</h3>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-sm">
+                                  <div><strong>Publisher:</strong> {viewModal.data.book_publisher || 'N/A'}</div>
+                                  <div><strong>ISBN:</strong> {viewModal.data.book_isbn || 'N/A'}</div>
+                                  <div><strong>Edition:</strong> {viewModal.data.book_edition || 'N/A'}</div>
+                                </div>
+                                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-sm">
+                                  <div><strong>Pages:</strong> {viewModal.data.book_pages || 'N/A'}</div>
+                                  <div><strong>Price:</strong> {viewModal.data.book_price || 'N/A'}</div>
+                                  <div><strong>Location:</strong> {viewModal.data.book_location || 'N/A'}</div>
+                                </div>
+                              </div>
+                             </div>
                        </div>
                        <div>
                           <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Previous Work</h3>

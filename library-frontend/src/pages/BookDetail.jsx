@@ -201,12 +201,37 @@ const BookDetail = () => {
 
                         {/* 🅰️ PDF VIEWER MODE */}
                         {viewMode === "pdf" && book.pdf_url && (
-                            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden h-[800px]">
-                                <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden" style={{height: 'calc(100vh - 240px)'}}>
+                                <Worker workerUrl="/pdf.worker.min.mjs">
                                     <Viewer fileUrl={book.pdf_url} plugins={[defaultLayoutPluginInstance]} />
                                 </Worker>
                             </div>
                         )}
+
+                        {/* Additional Metadata (visible to admin for full control) */}
+                        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="bg-white p-4 rounded-xl border border-gray-100">
+                                <h4 className="text-sm font-bold text-slate-500 uppercase mb-2">Publication</h4>
+                                <div className="text-sm text-slate-700 space-y-1">
+                                    <div><strong>Publisher:</strong> {book.publisher || 'N/A'}</div>
+                                    <div><strong>Published Date:</strong> {book.published_date || 'N/A'}</div>
+                                    <div><strong>ISBN:</strong> {book.isbn || 'N/A'}</div>
+                                    <div><strong>Edition:</strong> {book.edition || 'N/A'}</div>
+                                </div>
+                            </div>
+
+                            <div className="bg-white p-4 rounded-xl border border-gray-100">
+                                <h4 className="text-sm font-bold text-slate-500 uppercase mb-2">Library Details</h4>
+                                <div className="text-sm text-slate-700 space-y-1">
+                                    <div><strong>Pages:</strong> {book.page_count || 'N/A'}</div>
+                                    <div><strong>Serial #:</strong> {book.serial_number || 'N/A'}</div>
+                                    <div><strong>Book #:</strong> {book.book_number || 'N/A'}</div>
+                                    <div><strong>Parts / Volumes:</strong> {book.parts_or_volumes || 'N/A'}</div>
+                                    <div><strong>Translator:</strong> {book.translator || 'N/A'}</div>
+                                    <div><strong>Price:</strong> {book.price ? `₹ ${book.price}` : 'N/A'}</div>
+                                </div>
+                            </div>
+                        </div>
 
                         {/* 🅱️ TEXT RESEARCH MODE */}
                         {viewMode === "text" && (

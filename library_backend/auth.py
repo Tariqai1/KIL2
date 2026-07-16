@@ -6,12 +6,13 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 import bcrypt as _bcrypt
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session, joinedload
 from dotenv import load_dotenv
 
 # --- Imports ---
 from models import user_model
-from database import SessionLocal
+from database import SessionLocal, engine
 
 # ✅ Load .env
 load_dotenv()
@@ -20,11 +21,16 @@ load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key-for-dev-only")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 
-# Default: 30 days
+# ✅ FIXED: Token expiry times
 try:
-    ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 43200))
+    ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 15))
 except ValueError:
-    ACCESS_TOKEN_EXPIRE_MINUTES = 43200
+    ACCESS_TOKEN_EXPIRE_MINUTES = 15
+
+try:
+    REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
+except ValueError:
+    REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 # ✅ auto_error=False => optional auth supported
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/token", auto_error=False)
@@ -46,23 +52,57 @@ def get_password_hash(password: str) -> str:
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
-    """
-    ✅ Creates JWT token
-    IMPORTANT: sub should always be string
-    """
+    """✅ Legacy function - kept for compatibility. Use create_tokens() instead."""
     to_encode = data.copy()
-
-    # ✅ Always keep sub as string
     if "sub" in to_encode and to_encode["sub"] is not None:
         to_encode["sub"] = str(to_encode["sub"])
-
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def create_tokens(user_id: int, username: str):
+    """
+    ✅ NEW: Creates both access token (short-lived) and refresh token (long-lived)
+    Access: 15 minutes | Refresh: 7 days
+    """
+    current_time = datetime.now(timezone.utc)
+    
+    # Access Token (short-lived: 15 min)
+    access_data = {
+        "sub": str(user_id),
+        "username": username,
+        "type": "access",
+        "exp": current_time + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    }
+    access_token = jwt.encode(access_data, SECRET_KEY, algorithm=ALGORITHM)
+    
+    # Refresh Token (long-lived: 7 days)
+    refresh_data = {
+        "sub": str(user_id),
+        "username": username,
+        "type": "refresh",
+        "exp": current_time + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    }
+    refresh_token = jwt.encode(refresh_data, SECRET_KEY, algorithm=ALGORITHM)
+    
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer"
+    }
+
+
+def verify_token_type(token: str, expected_type: str = "access") -> bool:
+    """✅ NEW: Verify token type (access vs refresh)"""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload.get("type") == expected_type
+    except:
+        return False
 
 
 def get_db():
@@ -80,6 +120,7 @@ def get_db():
 async def get_user_from_token(token: str, db: Session) -> Optional[user_model.User]:
     """
     ✅ Decodes token and fetches User + Role + Permissions.
+    ✅ ALSO: Checks if token is blacklisted (revoked)
     FIX: sub is user_id (example: "20"), not username
     """
     try:
@@ -89,6 +130,22 @@ async def get_user_from_token(token: str, db: Session) -> Optional[user_model.Us
         if sub is None:
             return None
 
+        # ✅ Check if token is blacklisted (ISSUE #2 FIX)
+        from models import token_blacklist_model
+        jti = payload.get("jti", f"{sub}_{payload.get('exp')}")
+        
+        try:
+            blacklisted = db.query(token_blacklist_model.TokenBlacklist).filter(
+                token_blacklist_model.TokenBlacklist.token_jti == jti
+            ).first()
+            
+            if blacklisted:
+                print(f"⚠️ Token is blacklisted (revoked)")
+                return None
+        except Exception as e:
+            print(f"⚠️ Blacklist check failed: {e}")
+            # Continue anyway - don't block auth on blacklist check failure
+        
         # ✅ Convert sub -> int user_id safely
         try:
             user_id = int(sub)
@@ -98,16 +155,37 @@ async def get_user_from_token(token: str, db: Session) -> Optional[user_model.Us
     except JWTError:
         return None
 
-    user = (
-        db.query(user_model.User)
-        .options(
-            joinedload(user_model.User.role).joinedload(user_model.Role.permissions)
+    def _fetch_user(session: Session):
+        return (
+            session.query(user_model.User)
+            .options(
+                joinedload(user_model.User.role).joinedload(user_model.Role.permissions)
+            )
+            .filter(user_model.User.id == user_id)
+            .first()
         )
-        .filter(user_model.User.id == user_id)  # ✅ FIXED HERE
-        .first()
-    )
 
-    return user
+    try:
+        return _fetch_user(db)
+    except OperationalError:
+        try:
+            db.rollback()
+        except Exception:
+            pass
+
+        # Drop stale pooled connections and retry once with a fresh session.
+        try:
+            engine.dispose()
+        except Exception:
+            pass
+
+        retry_db = SessionLocal()
+        try:
+            return _fetch_user(retry_db)
+        except OperationalError:
+            return None
+        finally:
+            retry_db.close()
 
 
 # ==========================================================

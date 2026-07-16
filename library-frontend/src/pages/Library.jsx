@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { bookService } from '../api/bookService';
 import { useBookSearch } from '../hooks/useBookSearch';
 import BookCard from '../components/book/BookCard';
 import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline';
 
 const UserLibrary = () => {
+    const location = useLocation();
+    const [searchParams] = useSearchParams();
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -20,12 +23,34 @@ const UserLibrary = () => {
         fetchBooks();
     }, []);
 
+    // ✅ Apply search from URL params once when books are loaded
+    useEffect(() => {
+        // Only run once books have loaded and we have books to search through
+        if (loading || !Array.isArray(books) || books.length === 0) return;
+
+        const urlSearch = searchParams.get('search');
+        const stateSearch = location.state?.preSearch;
+        const searchValue = urlSearch || stateSearch;
+
+        if (searchValue && searchValue.trim()) {
+            console.log('✅ Applying search:', searchValue);
+            console.log('📚 Available books:', books.length);
+            
+            // Set search term (this will trigger filtering through useBookSearch hook)
+            setSearchTerm(searchValue);
+        }
+    }, [loading, books.length, searchParams.toString(), location.state?.preSearch, setSearchTerm]);
+
     const fetchBooks = async () => {
         try {
             const data = await bookService.read_books(0, 100, true); // Approved only
-            setBooks(data);
+            // Handle both array and wrapped response formats
+            const booksArray = Array.isArray(data) ? data : (data?.books || []);
+            console.log('📚 Fetched books:', booksArray.length);
+            setBooks(booksArray);
         } catch (error) {
             console.error("Error fetching books:", error);
+            setBooks([]);
         } finally {
             setLoading(false);
         }
@@ -71,29 +96,28 @@ const UserLibrary = () => {
                             FILTERS
                         </div>
                         
-                        {/* Language Filter */}
+                        {/* Language Filter (dynamic from data) */}
                         <select 
                             className="bg-slate-50 border-none rounded-lg px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-emerald-500"
                             value={selectedLanguage}
                             onChange={(e) => setSelectedLanguage(e.target.value)}
                         >
                             <option value="all">All Languages</option>
-                            <option value="english">English</option>
-                            <option value="hindi">Hindi (हिंदी)</option>
-                            <option value="arabic">Arabic (العربية)</option>
-                            <option value="urdu">Urdu (اردو)</option>
+                            {[...new Set(books.map(b => (b.language && (b.language.name || b.language)) || 'Unknown'))].map((lang) => (
+                                <option key={lang} value={String(lang).toLowerCase()}>{lang}</option>
+                            ))}
                         </select>
 
-                        {/* Category Filter */}
+                        {/* Category Filter (dynamic from data) */}
                         <select 
                             className="bg-slate-50 border-none rounded-lg px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-emerald-500"
                             value={selectedCategory}
                             onChange={(e) => setSelectedCategory(e.target.value)}
                         >
                             <option value="all">All Categories</option>
-                            <option value="islamic studies">Islamic Studies</option>
-                            <option value="literature">Literature</option>
-                            <option value="science & tech">Science & Tech</option>
+                            {[...new Set(books.flatMap(b => (b.subcategories || []).map(s => s.name || s).concat(b.category ? (b.category.name || b.category) : [])))].map((cat) => (
+                                <option key={cat} value={String(cat).toLowerCase()}>{cat}</option>
+                            ))}
                         </select>
                     </div>
 

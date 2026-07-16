@@ -1,6 +1,6 @@
-/* Ensure these styles or similar exist */
+/* src/assets/css/ManagementPages.css */
 
-/* Pagination Button Style (example) */
+/* --- Pagination --- */
 .pagination-button {
     padding: 0.5rem 1rem;
     border: 1px solid #ccc;
@@ -12,29 +12,12 @@
 .pagination-button:hover:not(:disabled) { background-color: #f0f0f0; }
 .pagination-button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* Status Badge Styles (based on Tailwind classes in JSX now) */
-/* You might not need these specific CSS rules anymore if using Tailwind badges */
-/* .status-available { color: #16a34a; font-weight: bold; } */
-/* .status-on-loan { color: #f97316; font-weight: bold; } */
-/* .status-lost, .status-damaged { color: #dc2626; font-weight: bold; } */
-
-/* Inline Form Styles */
+/* --- Inline Form Styles --- */
 .inline-form { display: flex; gap: 1rem; align-items: flex-end; }
 .inline-form.wrap { flex-wrap: wrap; }
 .inline-form .form-group { flex-grow: 1; margin-bottom: 0; min-width: 180px; }
 .inline-form .form-group label { margin-bottom: 0.3rem; font-size: 0.9em; }
 .inline-form button { white-space: nowrap; flex-shrink: 0; }
-
-/* General styles inherited from ManagementPages.css or Tailwind base */
-/* .list-header { ... } */
-/* .search-controls { ... } */
-/* .search-input { ... } */
-/* .refresh-button { ... } */
-/* .management-table { ... } */
-/* .table-responsive { ... } */
-/* .tabs { ... } etc. */
-
-/* src/assets/css/ManagementPages.css */
 
 /* --- Container Layout --- */
 .management-container {
@@ -43,24 +26,24 @@
   width: 100%;
 }
 
-/* --- Common Input Styles (Replaces Tailwind @apply) --- */
+/* --- Common Input Styles --- */
 .input-field {
   display: block;
   width: 100%;
-  padding: 0.5rem 1rem; /* px-4 py-2 */
-  font-size: 0.875rem; /* text-sm */
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
   line-height: 1.25rem;
-  color: #1f2937; /* text-gray-800 */
+  color: #1f2937;
   background-color: #fff;
-  border: 1px solid #d1d5db; /* border-gray-300 */
-  border-radius: 0.5rem; /* rounded-lg */
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
   transition: all 0.2s;
   outline: none;
 }
 
 .input-field:focus {
-  border-color: #4f46e5; /* indigo-600 */
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2); /* ring effect */
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
 }
 
 .input-field:disabled {
@@ -72,10 +55,10 @@
 /* --- Label Styles --- */
 .label-style {
   display: block;
-  font-size: 0.75rem; /* text-xs */
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
-  color: #6b7280; /* text-gray-500 */
+  color: #6b7280;
   margin-bottom: 0.375rem;
   letter-spacing: 0.025em;
 }
@@ -85,20 +68,20 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 1.5rem; /* px-6 py-2 */
+  padding: 0.5rem 1.5rem;
   font-size: 0.875rem;
   font-weight: 700;
   color: white;
-  background-color: #4f46e5; /* indigo-600 */
+  background-color: #4f46e5;
   border: none;
-  border-radius: 0.5rem; /* rounded-lg */
+  border-radius: 0.5rem;
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #4338ca; /* indigo-700 */
+  background-color: #4338ca;
   transform: translateY(-1px);
 }
 
@@ -131,7 +114,7 @@
   }
 }
 
-/* --- Table Styles (Optional Tweaks) --- */
+/* --- Table Styles --- */
 table th {
   letter-spacing: 0.05em;
 }
@@ -141,12 +124,77 @@ table th {
   height: 8px;
 }
 .overflow-x-auto::-webkit-scrollbar-track {
-  background: #f1f1f1; 
+  background: #f1f1f1;
 }
 .overflow-x-auto::-webkit-scrollbar-thumb {
-  background: #c7c7c7; 
+  background: #c7c7c7;
   border-radius: 4px;
 }
 .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8; 
+  background: #a8a8a8;
+}
+
+/* --- Permission Toolbar & Highlights --- */
+.perm-toolbar {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.perm-toolbar .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 0.6rem;
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  white-space: nowrap;
+}
+
+.perm-toolbar .btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+}
+
+.perm-toolbar .btn-ghost {
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  color: #374151;
+}
+.perm-toolbar .btn-ghost:hover { transform: translateY(-2px); }
+
+.perm-toolbar .btn-success {
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  color: #065f46;
+}
+
+.perm-toolbar .btn-danger {
+  background: #fff1f2;
+  border: 1px solid #fecaca;
+  color: #9f1239;
+}
+
+.perm-toolbar .btn-warning {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #92400e;
+}
+
+/* Highlight animation for permission cards */
+.perm-flash {
+  animation: permFlash 900ms ease-in-out;
+  transform-origin: center center;
+}
+
+@keyframes permFlash {
+  0% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.0); transform: scale(1); }
+  10% { box-shadow: 0 6px 20px -6px rgba(250, 204, 21, 0.3); transform: scale(1.03); }
+  40% { box-shadow: 0 12px 36px -12px rgba(250, 204, 21, 0.45); transform: scale(1.05); }
+  70% { box-shadow: 0 6px 20px -6px rgba(250, 204, 21, 0.25); transform: scale(1.02); }
+  100% { box-shadow: none; transform: scale(1); }
 }

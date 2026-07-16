@@ -31,44 +31,78 @@ def setup_initial_data():
         # A. All Roles List
         roles_to_create = ["Admin", "Student", "Editor", "Manager", "Member"]
         
-        # B. All Permissions List
-        all_permissions = [
+        # B. All Permissions List (with admin-friendly descriptions)
+        permissions_data = [
             # User & Role Management
-            'USER_VIEW', 'USER_MANAGE', 
-            'ROLE_VIEW', 'ROLE_MANAGE', 'ROLE_PERMISSION_ASSIGN',
-            'PERMISSION_VIEW', 'PERMISSION_MANAGE',
-            
+            { 'name': 'USER_VIEW', 'description': 'View user profiles and basic user information.' },
+            { 'name': 'USER_MANAGE', 'description': 'Create, edit, deactivate, or delete users.' },
+            { 'name': 'ROLE_VIEW', 'description': 'View existing roles and their assigned permissions.' },
+            { 'name': 'ROLE_MANAGE', 'description': 'Create, rename, or remove roles.' },
+            { 'name': 'ROLE_PERMISSION_ASSIGN', 'description': 'Assign or revoke permissions for roles.' },
+            { 'name': 'PERMISSION_VIEW', 'description': 'View available system permissions.' },
+            { 'name': 'PERMISSION_MANAGE', 'description': 'Create or update permission records (meta-level).' },
+
             # Book Management
-            'BOOK_VIEW', 'BOOK_MANAGE', 'BOOK_ISSUE', 
-            'CATEGORY_MANAGE', 'LANGUAGE_MANAGE', 
-            'LOCATION_MANAGE', 'COPY_MANAGE', 'COPY_VIEW',
-            
+            { 'name': 'BOOK_VIEW', 'description': 'Search and view book records and details.' },
+            { 'name': 'BOOK_MANAGE', 'description': 'Add, edit, or remove book records and metadata.' },
+            { 'name': 'BOOK_ISSUE', 'description': 'Issue or return books to library members.' },
+            { 'name': 'CATEGORY_MANAGE', 'description': 'Create and manage book categories and subcategories.' },
+            { 'name': 'LANGUAGE_MANAGE', 'description': 'Manage language entries used for books.' },
+            { 'name': 'LOCATION_MANAGE', 'description': 'Manage physical locations (branches, shelves).' },
+            { 'name': 'COPY_MANAGE', 'description': 'Manage individual book copies (barcode, condition).' },
+            { 'name': 'COPY_VIEW', 'description': 'View individual copy details and availability.' },
+
             # Requests & Circulation
-            'REQUEST_CREATE', 'REQUEST_VIEW', 'REQUEST_APPROVE', 'REQUEST_MANAGE',
-            'ISSUE_VIEW',
-            
+            { 'name': 'REQUEST_CREATE', 'description': 'Create requests for books or resources.' },
+            { 'name': 'REQUEST_VIEW', 'description': 'View user requests and their status.' },
+            { 'name': 'REQUEST_APPROVE', 'description': 'Approve or reject incoming requests.' },
+            { 'name': 'REQUEST_MANAGE', 'description': 'Manage request lifecycle and assignments.' },
+            { 'name': 'ISSUE_VIEW', 'description': 'View issue/loan history and active issues.' },
+
             # System & Logs
-            'LOG_VIEW', 'FILE_UPLOAD', 'DIGITAL_ACCESS_VIEW',
-            'BOOK_PERMISSION_MANAGE', 'BOOK_PERMISSION_VIEW'
+            { 'name': 'LOG_VIEW', 'description': 'Access system audit logs and activity records.' },
+            { 'name': 'FILE_UPLOAD', 'description': 'Upload files to the system (covers attachments).' },
+            { 'name': 'DIGITAL_ACCESS_VIEW', 'description': 'View digital access / e-resource records.' },
+            { 'name': 'BOOK_PERMISSION_MANAGE', 'description': 'Grant or revoke special book-level permissions for users.' },
+            { 'name': 'BOOK_PERMISSION_VIEW', 'description': 'View book-level permission grants.' },
+            { 'name': 'HOMEPAGE_BRANDING_MANAGE', 'description': 'Edit homepage theme, language, title, and hero badge.' },
+            { 'name': 'HOMEPAGE_CONTENT_MANAGE', 'description': 'Edit homepage section content, headings, and featured books.' },
+            { 'name': 'HOMEPAGE_LAYOUT_MANAGE', 'description': 'Edit homepage layout extras and optional blocks.' },
+            { 'name': 'HOMEPAGE_VISIBILITY_MANAGE', 'description': 'Show/hide homepage sections for public users.' },
+            { 'name': 'HOMEPAGE_SEARCH_MANAGE', 'description': 'Edit homepage search features: hints, voice, deep search, suggestions, and placeholder text.' }
         ]
 
         # ==========================================
         # 2. CREATE PERMISSIONS
         # ==========================================
-        print(f"🛠  Checking {len(all_permissions)} permissions...")
-        existing_perms = {p.name for p in db.query(Permission).all()}
-        
-        new_perms = []
-        for name in all_permissions:
+        print(f"🛠  Checking {len(permissions_data)} permissions...")
+        existing_perms = {p.name: p for p in db.query(Permission).all()}
+
+        # Create missing permissions, and update missing descriptions for existing ones
+        created = 0
+        updated = 0
+        for perm in permissions_data:
+            name = perm['name']
+            desc = perm.get('description')
             if name not in existing_perms:
-                new_perms.append(Permission(name=name))
-        
-        if new_perms:
-            db.add_all(new_perms)
+                db.add(Permission(name=name, description=desc))
+                created += 1
+            else:
+                # Update description if missing or empty
+                existing = existing_perms[name]
+                if desc and (not existing.description or existing.description.strip() == ''):
+                    existing.description = desc
+                    updated += 1
+
+        if created:
             db.commit()
-            print(f"✅ Added {len(new_perms)} new permissions.")
+            print(f"✅ Added {created} new permissions.")
         else:
-            print("✅ All permissions already exist.")
+            print("✅ No new permissions to add.")
+
+        if updated:
+            db.commit()
+            print(f"🔁 Updated descriptions for {updated} permissions.")
 
         # Reload all permissions map for assignment
         all_perms_map = {p.name: p for p in db.query(Permission).all()}
@@ -98,7 +132,11 @@ def setup_initial_data():
             
             elif role_name == "Manager":
                 # Manager gets most things except system configs
-                allowed = ['BOOK_MANAGE', 'BOOK_ISSUE', 'USER_VIEW', 'REQUEST_APPROVE', 'REQUEST_MANAGE', 'LOG_VIEW']
+                allowed = [
+                    'BOOK_MANAGE', 'BOOK_ISSUE', 'USER_VIEW', 'REQUEST_APPROVE', 'REQUEST_MANAGE', 'LOG_VIEW',
+                    'HOMEPAGE_BRANDING_MANAGE', 'HOMEPAGE_CONTENT_MANAGE', 'HOMEPAGE_LAYOUT_MANAGE',
+                    'HOMEPAGE_VISIBILITY_MANAGE', 'HOMEPAGE_SEARCH_MANAGE'
+                ]
                 perms_to_assign = [all_perms_map[p] for p in allowed if p in all_perms_map]
 
             elif role_name == "Editor":

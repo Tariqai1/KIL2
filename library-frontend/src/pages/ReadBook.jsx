@@ -10,7 +10,8 @@ import {
 } from '@heroicons/react/24/outline';
 import { BookmarkIcon as BookmarkSolid } from '@heroicons/react/24/solid';
 import apiClient from '../api/apiClient';
-import { getCoverUrl } from '../utils/cover';
+import { getCoverUrl, getPdfUrl } from '../utils/cover';
+import PdfViewer from '../components/book/PdfViewer';
 import { interactionService } from '../api/interactionService'; // Ensure correct import
 import toast from 'react-hot-toast';
 
@@ -85,6 +86,11 @@ const ReadBook = () => {
             fetchText();
         }
     }, [viewMode, book]);
+
+    // --- PDF viewer states ---
+    const [scale, setScale] = useState(1.0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
 
     // --- 3. Actions ---
     const toggleBookmark = async () => {
@@ -177,10 +183,15 @@ const ReadBook = () => {
                 {viewMode === 'pdf' && (
                     <div className="w-full h-full flex flex-col items-center justify-center">
                         {(book?.pdf_url || book?.pdf_file) ? (
-                            <iframe 
-                                src={getCoverUrl(book.pdf_url || book.pdf_file)} 
-                                className="w-full h-full border-none shadow-inner"
-                                title="PDF Reader"
+                            <PdfViewer 
+                                pdfUrl={getPdfUrl(book.pdf_url || book.pdf_file)}
+                                viewMode={'scroll'}
+                                scale={scale}
+                                setScale={setScale}
+                                setTotalPages={setTotalPages}
+                                setCurrentPage={setCurrentPage}
+                                totalPages={totalPages}
+                                currentPage={currentPage}
                             />
                         ) : (
                             <div className="text-center p-8 text-slate-400">

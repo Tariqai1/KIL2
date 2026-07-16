@@ -10,6 +10,12 @@ const normalize = (value) => {
     .replace(/\s+/g, " "); // multiple spaces -> single space
 };
 
+const slugify = (value) => {
+  return normalize(value)
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "");
+};
+
 /** ✅ Safe text extractor (string/object both) */
 const getText = (value) => {
   if (!value) return "";
@@ -44,6 +50,10 @@ const getCategoryNames = (book) => {
   const cat = normalize(getText(book?.category));
   if (cat) list.push(cat);
 
+  // 3) common alternate property names
+  const altCat = normalize(getText(book?.category_name || book?.categoryTitle || book?.category_title));
+  if (altCat) list.push(altCat);
+
   return list;
 };
 
@@ -77,8 +87,13 @@ export const useBookSearch = (initialBooks = []) => {
 
       /** ✅ 2) Category filter */
       const bookCats = getCategoryNames(book);
+      const normalizedBookCats = bookCats.map(slugify).filter(Boolean);
+      const normalizedCatFilter = slugify(catFilter);
       const matchesCategory =
-        catFilter === "all" || bookCats.includes(catFilter);
+        catFilter === "all" ||
+        normalizedBookCats.some(
+          (cat) => cat === normalizedCatFilter || cat.includes(normalizedCatFilter) || normalizedCatFilter.includes(cat)
+        );
 
       /** ✅ 3) Search (title + author + publisher + isbn + description) */
       if (!term) {

@@ -31,7 +31,15 @@ const LibrarySearchStrip = ({
   onSearchChange,
   suggestions = [],
   loading = false,
-  onDeepSearchResultClick
+  onDeepSearchResultClick,
+  title = "Library Search",
+  subtitle = "Search the library collection",
+  description = "Find books, authors, publishers and smart recommendations instantly.",
+  showHint = true,
+  placeholder = "Search books, authors, publishers...",
+  enableVoice = true,
+  enableDeepSearch = true,
+  enableSuggestions = true,
 }) => {
   const [localValue, setLocalValue] = useState(searchTerm);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -125,6 +133,18 @@ const LibrarySearchStrip = ({
     <>
       <div className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b">
         <div className="max-w-5xl mx-auto px-4 py-5">
+          <div className="mb-5 rounded-[2rem] border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 p-6 text-white shadow-[0_24px_80px_-45px_rgba(15,23,42,0.9)]">
+            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.35em] text-cyan-300">{title}</p>
+                <h2 className="mt-2 text-2xl font-semibold text-white">{subtitle}</h2>
+                <p className="mt-2 max-w-2xl text-sm text-slate-300">{description}</p>
+              </div>
+              <div className="rounded-full border border-white/15 bg-white/10 px-3 py-2 text-sm text-slate-200 backdrop-blur">
+                Ctrl + K {enableVoice ? '• Voice Search' : ''} {enableDeepSearch ? '• Deep Search' : ''}
+              </div>
+            </div>
+          </div>
 
           {/* ================= SEARCH BAR ================= */}
           <motion.div
@@ -149,8 +169,8 @@ const LibrarySearchStrip = ({
                   setLocalValue(e.target.value);
                   setShowSuggestions(true);
                 }}
-                placeholder="Search books, authors, publishers..."
-                className="flex-1 px-4 py-4 bg-transparent outline-none"
+                placeholder={placeholder}
+                className="flex-1 px-4 py-4 bg-transparent outline-none text-slate-900 placeholder:text-slate-400"
               />
 
               {/* Clear Button */}
@@ -169,34 +189,38 @@ const LibrarySearchStrip = ({
               </AnimatePresence>
 
               {/* Voice Search Button */}
-              <button
-                onClick={startVoiceSearch}
-                title="Voice Search"
-                className={`p-2 rounded-full mr-1 transition-colors ${
-                  listening ? "bg-red-100 animate-pulse text-red-600" : "hover:bg-gray-200 text-gray-600"
-                }`}
-              >
-                <MicrophoneIcon className="w-5 h-5" />
-              </button>
+              {enableVoice ? (
+                <button
+                  onClick={startVoiceSearch}
+                  title="Voice Search"
+                  className={`p-2 rounded-full mr-1 transition-colors ${
+                    listening ? "bg-red-100 animate-pulse text-red-600" : "hover:bg-gray-200 text-gray-600"
+                  }`}
+                >
+                  <MicrophoneIcon className="w-5 h-5" />
+                </button>
+              ) : null}
 
               {/* ✅ NAYA: Deep Search Button with Loading State */}
-              <button
-                onClick={() => setIsDeepSearchOpen(true)}
-                title="Deep Search inside Books (Ctrl+Shift+F)"
-                className="p-2 rounded-full hover:bg-indigo-100 hover:text-indigo-600 text-gray-600 mr-2 transition-colors border border-transparent hover:border-indigo-200"
-              >
-                {isFetchingBook ? (
-                  <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <DocumentTextIcon className="w-5 h-5" />
-                )}
-              </button>
+              {enableDeepSearch ? (
+                <button
+                  onClick={() => setIsDeepSearchOpen(true)}
+                  title="Deep Search inside Books (Ctrl+Shift+F)"
+                  className="p-2 rounded-full hover:bg-indigo-100 hover:text-indigo-600 text-gray-600 mr-2 transition-colors border border-transparent hover:border-indigo-200"
+                >
+                  {isFetchingBook ? (
+                    <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <DocumentTextIcon className="w-5 h-5" />
+                  )}
+                </button>
+              ) : null}
 
             </motion.div>
 
             {/* ================= SUGGESTIONS ================= */}
             <AnimatePresence>
-              {showSuggestions && localValue && suggestions.length > 0 && (
+              {enableSuggestions && showSuggestions && localValue && suggestions.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -244,12 +268,14 @@ const LibrarySearchStrip = ({
           </motion.div>
 
           {/* ================= HINT ================= */}
-          <div className="flex items-center justify-between text-xs text-gray-500 mt-2 px-2">
-            <p>⌘/Ctrl + K (Catalog) • Voice Search • Live Results</p>
-            <p className="text-indigo-500 font-medium bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
-              New: Deep Search (Ctrl+Shift+F)
-            </p>
-          </div>
+          {showHint ? (
+            <div className="flex items-center justify-between text-xs text-gray-500 mt-2 px-2">
+              <p>⌘/Ctrl + K (Catalog) • Voice Search • Live Results</p>
+              <p className="text-indigo-500 font-medium bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                New: Deep Search (Ctrl+Shift+F)
+              </p>
+            </div>
+          ) : null}
         </div>
       </div>
 

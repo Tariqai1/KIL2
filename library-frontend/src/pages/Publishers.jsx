@@ -97,12 +97,12 @@ const Publishers = () => {
     return publishers.reduce((sum, p) => sum + (p.count || 0), 0);
   }, [publishers]);
 
-  // ✅ Navigate to PublicHome with preSearch (works with your PublicHome logic)
+  // ✅ Navigate to Books Library with preSearch
   const handlePublisherClick = (publisherName) => {
-    navigate("/", {
+    navigate(`/books?search=${encodeURIComponent(publisherName)}`, {
       state: {
         preSearch: publisherName,
-        mode: "publisher", // future-proof (optional)
+        mode: "publisher"
       },
     });
   };

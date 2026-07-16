@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from '../context/AuthProvider';
+import settingsService from '../api/settingsService';
 import { Toaster, toast } from "react-hot-toast";
 import {
   FaceFrownIcon,
@@ -23,6 +24,7 @@ import SuccessScreen from "../components/RestrictedAccess/SuccessScreen"; // ✅
 
 // Services + Hooks
 import { bookService } from "../api/bookService";
+import { categoryService } from "../api/categoryService";
 import { useBookSearch } from "../hooks/useBookSearch";
 import LandingPostsPreview from "../components/public/LandingPostsPreview";
 import DonationPanel from "../components/donation/DonationPanel";
@@ -57,6 +59,8 @@ const PublicHome = () => {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [homepageSettings, setHomepageSettings] = useState({ theme: 'aurora', sections: {}, layout: {} });
+  const [dynamicCategories, setDynamicCategories] = useState([]);  // ✅ Dynamic Categories from DB
 
   // Filters
   const [sortBy, setSortBy] = useState("newest");
@@ -64,6 +68,12 @@ const PublicHome = () => {
 
   const featuredBooks = useMemo(() => {
     if (!Array.isArray(books) || books.length === 0) return [];
+    const featuredIds = homepageSettings?.sections?.featured?.featured_books || [];
+    if (Array.isArray(featuredIds) && featuredIds.length) {
+      const byId = new Map(books.map((b) => [b.id, b]));
+      const list = featuredIds.map((id) => byId.get(id)).filter(Boolean);
+      if (list.length) return list;
+    }
     return books.slice(0, 6);
   }, [books]);
 
@@ -87,16 +97,31 @@ const PublicHome = () => {
 
   // Categories list
   const categories = useMemo(
-    () => [
-      { value: "all", label: "All Categories" },
-      { value: "aqeedah_fiqh", label: "Aqeedah & Fiqh" },
-      { value: "quran_sciences", label: "Quran & Sciences" },
-      { value: "ahkam_masail", label: "Ahkam & Masail" },
-      { value: "history_seerah", label: "History & Seerah" },
-      { value: "literature", label: "Literature" },
-      { value: "science_tech", label: "Science & Tech" },
-    ],
-    []
+    () => {
+      // ✅ If dynamic categories loaded from DB, use them
+      if (dynamicCategories.length > 0) {
+        return [
+          { value: "all", label: "All Categories" },
+          ...dynamicCategories.map(cat => ({
+            value: cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '_'),
+            label: cat.name || cat.category_name,
+            id: cat.id
+          }))
+        ];
+      }
+      
+      // ✅ Fallback to hardcoded if DB load fails
+      return [
+        { value: "all", label: "All Categories" },
+        { value: "aqeedah_fiqh", label: "Aqeedah & Fiqh" },
+        { value: "quran_sciences", label: "Quran & Sciences" },
+        { value: "ahkam_masail", label: "Ahkam & Masail" },
+        { value: "history_seerah", label: "History & Seerah" },
+        { value: "literature", label: "Literature" },
+        { value: "science_tech", label: "Science & Tech" },
+      ];
+    },
+    [dynamicCategories]
   );
 
   // --- 5) SEARCH HOOK ---
@@ -128,6 +153,36 @@ const PublicHome = () => {
   useEffect(() => {
     loadBooks();
   }, [loadBooks]);
+
+  // ✅ NEW: Fetch categories from database (admin-added)
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await categoryService.getAllCategories();
+        const categoryList = Array.isArray(data) ? data : data?.categories || [];
+        setDynamicCategories(categoryList);
+        console.log("✅ Dynamic categories loaded:", categoryList);
+      } catch (error) {
+        console.warn("⚠️ Could not load categories from DB, using fallback:", error);
+        setDynamicCategories([]);
+      }
+    };
+
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const data = await settingsService.getHomepageSettings();
+        setHomepageSettings(data || { theme: 'aurora', sections: {}, layout: {} });
+      } catch (error) {
+        console.error('Unable to load homepage settings', error);
+      }
+    };
+
+    loadSettings();
+  }, []);
 
   // --- 7) AUTO-SEARCH EFFECT (from other pages) ---
   useEffect(() => {
@@ -208,17 +263,61 @@ const PublicHome = () => {
     return sortedBooks.filter((b) => favorites.includes(b.id));
   }, [sortedBooks, showFavoritesOnly, favorites]);
 
+  const themeClasses = useMemo(() => {
+    const theme = homepageSettings?.theme || 'aurora';
+    if (theme === 'night') {
+      return {
+        shell: 'bg-slate-950 text-slate-100',
+        card: 'bg-slate-900/90 text-slate-100 border-slate-800',
+        muted: 'text-slate-400',
+        hero: 'from-slate-950 via-slate-900 to-slate-800',
+      };
+    }
+    if (theme === 'day') {
+      return {
+        shell: 'bg-[#F9FAFB] text-gray-800',
+        card: 'bg-white text-slate-800 border-slate-200',
+        muted: 'text-slate-500',
+        hero: 'from-slate-950 via-slate-900 to-zinc-950',
+      };
+    }
+    return {
+      shell: 'bg-[#F9FAFB] text-gray-800',
+      card: 'bg-slate-950/85 text-slate-100 border-slate-800',
+      muted: 'text-slate-400',
+      hero: 'from-slate-950 via-slate-900 to-zinc-950',
+    };
+  }, [homepageSettings?.theme]);
+
+  const sectionVisibility = useMemo(() => homepageSettings?.sections || {}, [homepageSettings?.sections]);
+  const getSectionConfig = useCallback((key, fallback) => {
+    return sectionVisibility?.[key] || fallback || {};
+  }, [sectionVisibility]);
+
+  const language = homepageSettings?.language || 'en';
+  const siteTitle = homepageSettings?.site_title || 'Kokan Library';
+  const heroBadge = homepageSettings?.hero_badge || 'Adaptive Knowledge Grid';
+  const layout = homepageSettings?.layout || {};
+  const showHeroStats = layout.show_stats !== false;
+  const showSearchStripBlock = layout.show_search_strip !== false;
+  const showFeaturedPanel = layout.show_featured_books !== false;
+  const showDonationBlock = layout.show_donation_panel !== false;
+
+  useEffect(() => {
+    document.title = siteTitle;
+  }, [siteTitle]);
+
   // --- LOADING SCREEN FOR ADMIN REDIRECT ---
   if (authLoading) return null; // Or a spinner
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] font-sans text-gray-800 animate-in fade-in duration-500">
+    <div className={`min-h-screen font-sans animate-in fade-in duration-500 ${themeClasses.shell}`}>
       <Toaster position="top-right" />
+      <div className="sr-only" aria-label="Current site language">{language}</div>
 
-      {/* Hero */}
-      <LibraryHero />
+      {getSectionConfig('hero', { enabled: true }).enabled !== false && <LibraryHero />}
 
-      {/* Library Overview */}
+      {getSectionConfig('hero', { enabled: true }).enabled !== false && (
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-950 px-6 py-10 shadow-[0_40px_120px_-60px_rgba(15,23,42,0.85)] sm:px-10 sm:py-14">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.18),_transparent_25%),radial-gradient(circle_at_bottom_right,_rgba(168,85,247,0.16),_transparent_22%)]" />
@@ -226,49 +325,76 @@ const PublicHome = () => {
             <div className="space-y-6">
               <span className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-500/10 px-4 py-2 text-xs uppercase tracking-[0.35em] text-cyan-200 shadow-[0_0_0_1px_rgba(56,189,248,0.05)]">
                 <span className="h-2.5 w-2.5 rounded-full bg-cyan-400 animate-pulse shadow-cyan-500/40" />
-                Adaptive Knowledge Grid
+                {heroBadge}
               </span>
 
               <h2 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
-                Welcome to the future of the library — intelligent, curated, and luminous.
+                {getSectionConfig('hero', { title: 'Welcome to the future of the library' }).title || 'Welcome to the future of the library'}
               </h2>
 
               <p className="max-w-2xl text-sm leading-7 text-slate-300 md:text-base">
-                Kokan Library now surfaces trusted Islamic resources with a digital-first, future-ready lens. Explore approved titles, discover featured collections, and access secure restricted books through a smart, polished reading experience.
+                {getSectionConfig('hero', { description: 'Kokan Library now surfaces trusted Islamic resources with a digital-first, future-ready lens.' }).description || 'Kokan Library now surfaces trusted Islamic resources with a digital-first, future-ready lens.'}
               </p>
 
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div className="rounded-3xl border border-cyan-500/15 bg-white/5 p-5 shadow-[0_30px_60px_-40px_rgba(96,165,250,0.35)] backdrop-blur-xl">
-                  <p className="text-4xl font-bold text-white">{books.length}</p>
-                  <p className="mt-2 text-xs uppercase tracking-[0.3em] text-cyan-200/80">Approved Titles</p>
-                </div>
-                <div className="rounded-3xl border border-violet-500/15 bg-white/5 p-5 shadow-[0_30px_60px_-40px_rgba(168,85,247,0.28)] backdrop-blur-xl">
-                  <p className="text-4xl font-bold text-white">{featuredBooks.length}</p>
-                  <p className="mt-2 text-xs uppercase tracking-[0.3em] text-violet-200/80">Featured Picks</p>
-                </div>
-                <div className="rounded-3xl border border-slate-400/10 bg-white/5 p-5 shadow-[0_30px_60px_-40px_rgba(148,163,184,0.25)] backdrop-blur-xl">
-                  <p className="text-4xl font-bold text-white">Secure</p>
-                  <p className="mt-2 text-xs uppercase tracking-[0.3em] text-slate-300/80">Admin Approved</p>
-                </div>
+              <div className="flex flex-wrap gap-3">
+                {getSectionConfig('hero', { primary_cta_label: 'Explore the catalog', primary_cta_url: '/books' }).primary_cta_label ? (
+                  <a href={getSectionConfig('hero', { primary_cta_url: '/books' }).primary_cta_url || '/books'} className="inline-flex items-center rounded-full bg-cyan-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-400">
+                    {getSectionConfig('hero', { primary_cta_label: 'Explore the catalog' }).primary_cta_label || 'Explore the catalog'}
+                  </a>
+                ) : null}
+                {getSectionConfig('hero', { secondary_cta_label: 'Request access', secondary_cta_url: '/contact' }).secondary_cta_label ? (
+                  <a href={getSectionConfig('hero', { secondary_cta_url: '/contact' }).secondary_cta_url || '/contact'} className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-slate-100 backdrop-blur transition hover:bg-white/20">
+                    {getSectionConfig('hero', { secondary_cta_label: 'Request access' }).secondary_cta_label || 'Request access'}
+                  </a>
+                ) : null}
               </div>
+
+              {showHeroStats ? (
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div className="rounded-3xl border border-cyan-500/15 bg-white/5 p-5 shadow-[0_30px_60px_-40px_rgba(96,165,250,0.35)] backdrop-blur-xl">
+                    <p className="text-4xl font-bold text-white">50+</p>
+                    <p className="mt-2 text-xs uppercase tracking-[0.3em] text-cyan-200/80">Islamic Books</p>
+                  </div>
+                  <div className="rounded-3xl border border-violet-500/15 bg-white/5 p-5 shadow-[0_30px_60px_-40px_rgba(168,85,247,0.28)] backdrop-blur-xl">
+                    <p className="text-4xl font-bold text-white">10+</p>
+                    <p className="mt-2 text-xs uppercase tracking-[0.3em] text-violet-200/80">Categories</p>
+                  </div>
+                  <div className="rounded-3xl border border-slate-400/10 bg-white/5 p-5 shadow-[0_30px_60px_-40px_rgba(148,163,184,0.25)] backdrop-blur-xl">
+                    <p className="text-4xl font-bold text-white">100%</p>
+                    <p className="mt-2 text-xs uppercase tracking-[0.3em] text-slate-300/80">Free Access</p>
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/70 p-6 shadow-2xl">
               <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-cyan-400 via-blue-400 to-violet-400 opacity-70" />
               <div className="space-y-5">
                 <h3 className="text-2xl font-semibold tracking-tight text-white">Why this library feels futuristic</h3>
-                <div className="space-y-4 text-sm text-slate-300">
-                  <div className="rounded-3xl border border-slate-700/80 bg-slate-950/70 p-4 shadow-lg">
-                    <p className="font-semibold text-white">AI-inspired curation</p>
-                    <p className="mt-1 text-slate-400">Books are surfaced by relevance, trust, and community impact.</p>
+                <div className="grid gap-3 text-sm text-slate-300 md:grid-cols-2">
+                  <div className="rounded-2xl border border-slate-700/80 bg-slate-950/70 p-4 shadow-lg">
+                    <p className="font-semibold text-white">Authentic Sources</p>
+                    <p className="mt-1 text-slate-400">Every book is verified from scholarly and reliable references.</p>
                   </div>
-                  <div className="rounded-3xl border border-slate-700/80 bg-slate-950/70 p-4 shadow-lg">
-                    <p className="font-semibold text-white">Secure restricted access</p>
-                    <p className="mt-1 text-slate-400">Admin-reviewed titles are held behind a trusted access flow.</p>
+                  <div className="rounded-2xl border border-slate-700/80 bg-slate-950/70 p-4 shadow-lg">
+                    <p className="font-semibold text-white">Easy Categorization</p>
+                    <p className="mt-1 text-slate-400">Quran, Hadith, Fiqh, and Seerah are organized into clear sections.</p>
                   </div>
-                  <div className="rounded-3xl border border-slate-700/80 bg-slate-950/70 p-4 shadow-lg">
-                    <p className="font-semibold text-white">Instant discovery</p>
-                    <p className="mt-1 text-slate-400">Search, filter, and browse without noise.</p>
+                  <div className="rounded-2xl border border-slate-700/80 bg-slate-950/70 p-4 shadow-lg">
+                    <p className="font-semibold text-white">Multi-language Support</p>
+                    <p className="mt-1 text-slate-400">Arabic, Urdu, and English books are available in one place.</p>
+                  </div>
+                  <div className="rounded-2xl border border-slate-700/80 bg-slate-950/70 p-4 shadow-lg">
+                    <p className="font-semibold text-white">Offline Reading</p>
+                    <p className="mt-1 text-slate-400">Download and read books without needing internet access.</p>
+                  </div>
+                  <div className="rounded-2xl border border-slate-700/80 bg-slate-950/70 p-4 shadow-lg">
+                    <p className="font-semibold text-white">Bookmark & Notes</p>
+                    <p className="mt-1 text-slate-400">Save favorite books and add personal notes as you read.</p>
+                  </div>
+                  <div className="rounded-2xl border border-slate-700/80 bg-slate-950/70 p-4 shadow-lg">
+                    <p className="font-semibold text-white">Free & Open Access</p>
+                    <p className="mt-1 text-slate-400">Everything is free and dynamically accessible for every reader.</p>
                   </div>
                 </div>
               </div>
@@ -277,34 +403,38 @@ const PublicHome = () => {
           </div>
         </div>
       </div>
+      )}
 
+      {getSectionConfig('search', { enabled: true }).enabled !== false && showSearchStripBlock && (
       <div className="max-w-7xl mx-auto px-4 pb-8">
         <div className="rounded-[2rem] border border-white/10 bg-slate-950/85 p-6 shadow-2xl">
           <div className="mb-6 text-slate-200">
-            <p className="text-sm uppercase tracking-[0.3em] text-cyan-300 font-semibold">Library Search</p>
-            <h3 className="text-2xl font-semibold text-white">Search the library collection</h3>
-            <p className="mt-2 text-sm text-slate-400">Find books, authors, publishers and smart recommendations right from the library section.</p>
+            <p className="text-sm uppercase tracking-[0.3em] text-cyan-300 font-semibold">{getSectionConfig('search', { title: 'Library Search' }).title || 'Library Search'}</p>
+            <h3 className="text-2xl font-semibold text-white">{getSectionConfig('search', { subtitle: 'Search the library collection' }).subtitle || 'Search the library collection'}</h3>
+            <p className="mt-2 text-sm text-slate-400">{getSectionConfig('search', { description: 'Find books, authors, publishers and smart recommendations right from the library section.' }).description || 'Find books, authors, publishers and smart recommendations right from the library section.'}</p>
           </div>
           <LibrarySearchStrip
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
-            selectedLanguage={selectedLanguage}
-            onLanguageChange={setSelectedLanguage}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-            sortBy={sortBy}
-            onSortChange={setSortBy}
-            categories={categories}
+            title={getSectionConfig('search', { title: 'Library Search' }).title || 'Library Search'}
+            subtitle={getSectionConfig('search', { subtitle: 'Search the library collection' }).subtitle || 'Search the library collection'}
+            description={getSectionConfig('search', { description: 'Find books, authors, publishers and smart recommendations right from the library section.' }).description || 'Find books, authors, publishers and smart recommendations right from the library section.'}
+            placeholder={getSectionConfig('search', { placeholder: 'Search by title, author, or ISBN...' }).placeholder || 'Search by title, author, or ISBN...'}
+            showHint={Boolean(getSectionConfig('search', { show_hint: true }).show_hint !== false)}
+            enableVoice={Boolean(getSectionConfig('search', { enable_voice: true }).enable_voice !== false)}
+            enableDeepSearch={Boolean(getSectionConfig('search', { enable_deep: true }).enable_deep !== false)}
+            enableSuggestions={Boolean(getSectionConfig('search', { show_suggestions: true }).show_suggestions !== false)}
           />
         </div>
       </div>
+      )}
 
-      {/* Featured Section */}
+      {getSectionConfig('featured', { enabled: true }).enabled !== false && showFeaturedPanel && (
       <div className="max-w-7xl mx-auto px-4 pb-12">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-6">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-indigo-600 font-bold">Library Highlights</p>
-            <h2 className="text-3xl font-bold text-slate-900">Recommended by the library team</h2>
+            <p className="text-sm uppercase tracking-[0.3em] text-indigo-600 font-bold">{getSectionConfig('featured', { title: 'Library Highlights' }).title || 'Library Highlights'}</p>
+            <h2 className="text-3xl font-bold text-slate-900">{getSectionConfig('featured', { subtitle: 'Recommended by the library team' }).subtitle || 'Recommended by the library team'}</h2>
           </div>
           <button
             onClick={() => {
@@ -341,17 +471,18 @@ const PublicHome = () => {
           </div>
         )}
       </div>
+      )}
 
-      {/* Content */}
+      {getSectionConfig('catalog', { enabled: true }).enabled !== false && (
       <div className="max-w-7xl mx-auto px-4 py-8" id="book-grid">
         {/* Header + Stats */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8 border-b border-gray-200 pb-4">
           <div>
             <h2 className="text-3xl font-serif font-bold text-[#002147]">
-              {searchTerm ? `Results for "${searchTerm}"` : "Explore the Library"}
+              {searchTerm ? `Results for "${searchTerm}"` : getSectionConfig('catalog', { title: 'Explore the Library' }).title || 'Explore the Library'}
             </h2>
             <p className="text-gray-500 text-sm mt-1">
-              Browse our handpicked selection, curated recommendations, and full catalog from Kokan Islamic Library.
+              {getSectionConfig('catalog', { description: 'Browse our handpicked selection, curated recommendations, and full catalog from Kokan Islamic Library.' }).description || 'Browse our handpicked selection, curated recommendations, and full catalog from Kokan Islamic Library.'}
             </p>
           </div>
 
@@ -470,6 +601,7 @@ const PublicHome = () => {
           </div>
         )}
       </div>
+      )}
 
       {/* Modals */}
       {selectedBook && (
@@ -495,21 +627,25 @@ const PublicHome = () => {
         />
       )}
 
+      {getSectionConfig('posts', { enabled: true }).enabled !== false || getSectionConfig('donation', { enabled: true }).enabled !== false ? (
       <div className="max-w-7xl mx-auto px-4 py-16 border-t border-gray-200">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
 
-          {/* LEFT: Posts */}
+          {getSectionConfig('posts', { enabled: true }).enabled !== false && (
           <div className="lg:col-span-2">
             <LandingPostsPreview />
           </div>
+          )}
 
-          {/* RIGHT: Donation */}
+          {getSectionConfig('donation', { enabled: true }).enabled !== false && showDonationBlock && (
           <div className="lg:col-span-1 lg:sticky lg:top-24 h-fit">
             <DonationPanel />
           </div>
+          )}
 
         </div>
       </div>
+      ) : null}
 
     </div>
   );

@@ -6,6 +6,7 @@ from database import get_db
 from models.request_user_model import AccessRequest
 from models.book_model import Book
 from models.user_model import User
+from models.book_permission_model import BookPermission
 from schemas import request_user_schema as schemas
 from auth import get_current_user
 
@@ -190,6 +191,41 @@ def get_all_access_requests(
         formatted_requests.append(obj)
     return formatted_requests
 
+
+@router.get("/count")
+def get_requests_count(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Return counts for requests grouped by status. Used by admin sidebar to show pending badge."""
+    # Only users with REQUEST_VIEW permission should call this in UI, but keep it safe
+    try:
+        total = db.query(func.count(AccessRequest.id)).scalar() or 0
+        pending = db.query(func.count(AccessRequest.id)).filter(func.lower(AccessRequest.status) == 'pending').scalar() or 0
+        approved = db.query(func.count(AccessRequest.id)).filter(func.lower(AccessRequest.status) == 'approved').scalar() or 0
+        rejected = db.query(func.count(AccessRequest.id)).filter(func.lower(AccessRequest.status) == 'rejected').scalar() or 0
+
+        return {
+            "total": int(total),
+            "pending": int(pending),
+            "approved": int(approved),
+            "rejected": int(rejected)
+        }
+    except Exception as e:
+        print(f"⚠️ get_requests_count failed: {e}")
+        raise HTTPException(status_code=500, detail="Could not fetch request counts.")
+
+
+# Alias endpoint: sometimes routing or schema generation misses literal paths;
+# provide a secondary path `/counts` as a stable fallback for the frontend.
+@router.get("/counts")
+def get_requests_counts_alias(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Alias to `/count` for compatibility with frontend callers."""
+    return get_requests_count(db=db, current_user=current_user)
+
 # ---------------------------------------------------------
 # 5. PATCH: Update Status (Secured)
 # ---------------------------------------------------------
@@ -221,6 +257,20 @@ def update_request_status(
         db_request.rejection_reason = rejection_reason or "No reason provided."
     elif normalized_status == "approved":
         db_request.rejection_reason = None # Clear reason if approved
+        # When a request is approved, create a BookPermission so the user gains direct access
+        try:
+            # Check if permission already exists
+            existing_perm = db.query(BookPermission).filter(
+                BookPermission.book_id == db_request.book_id,
+                BookPermission.user_id == db_request.user_id
+            ).first()
+
+            if not existing_perm:
+                perm = BookPermission(book_id=db_request.book_id, user_id=db_request.user_id)
+                db.add(perm)
+                # Do not commit here; will commit after status update
+        except Exception as e:
+            print(f"⚠️ Failed to create BookPermission: {e}")
 
     try:
         db.commit()
