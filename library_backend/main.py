@@ -153,6 +153,8 @@ origins = [o.strip() for o in _cors_env.split(",") if o.strip()] if _cors_env el
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://yourdomain.com",
+    "https://kil-2-9yz1-five.vercel.app",  # ✅ Production Vercel frontend
+    "https://kil2.pages.dev",  # ✅ Cloudflare Pages (optional)
 ]
 
 app.add_middleware(
