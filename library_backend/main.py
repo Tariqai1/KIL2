@@ -71,13 +71,20 @@ async def lifespan(app: FastAPI):
     # 🚀 Startup
     print("🚀 System Starting...")
     
-    # 1. Database Tables Check
+    # 1. Database Tables Check (Non-blocking - doesn't crash if DB is down)
     print("Checking database tables...")
-    Base.metadata.create_all(bind=engine)
-    print("✅ Database tables verified.")
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("✅ Database tables verified.")
+    except Exception as e:
+        print(f"⚠️ Database connection warning (app will retry): {str(e)[:100]}")
+        print("⚠️ App starting WITHOUT database - will attempt to connect on first request")
     
-    # 2. Run Database Migrations
-    run_migrations()
+    # 2. Run Database Migrations (Safe - handles DB connection errors)
+    try:
+        run_migrations()
+    except Exception as e:
+        print(f"⚠️ Migrations skipped (app will retry on next startup): {str(e)[:100]}")
 
     # 3. Initialize Rate Limiter (slowapi - no Redis needed)
     if limiter:
