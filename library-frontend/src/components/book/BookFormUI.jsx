@@ -1,4 +1,4 @@
-﻿// src/components/book/BookFormUI.jsx
+﻿// ✅ src/components/book/BookFormUI.jsx - All JSX syntax fixed
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
