@@ -14,6 +14,10 @@ main = "dist/index.html"
 [env.production]
 vars = { VITE_API_BASE_URL = "https://kil2-backend.onrender.com" }
 
+# Observability
+[observability]
+enabled = false
+
 # Triggers for automatic deploys
 [triggers]
 branches = [{ pattern = "main" }]
