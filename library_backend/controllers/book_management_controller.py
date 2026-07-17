@@ -48,6 +48,8 @@ async def create_book(
     language_id: int = Form(...),
     page_count: Optional[int] = Form(None),
     publication_year: Optional[int] = Form(None),
+    serial_number: Optional[str] = Form(None),
+    book_number: Optional[str] = Form(None),
     price: Optional[float] = Form(None),
     is_restricted: bool = Form(False),
     is_digital: bool = Form(False),
@@ -127,6 +129,8 @@ async def create_book(
         subject_number=subject_number,
         language_id=language_id,
         page_count=page_count,
+        serial_number=serial_number,
+        book_number=book_number,
         price=price,
         date_of_purchase=parsed_purchase_date,
         published_date=date(publication_year, 1, 1) if publication_year else None,
@@ -182,6 +186,9 @@ async def update_book(
     isbn: Optional[str] = Form(None),
     language_id: Optional[int] = Form(None),
     page_count: Optional[int] = Form(None),
+    publication_year: Optional[int] = Form(None),
+    serial_number: Optional[str] = Form(None),
+    book_number: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
     is_restricted: Optional[bool] = Form(None),
     subcategory_ids: List[int] = Form(None),
@@ -210,8 +217,13 @@ async def update_book(
     if author is not None: db_book.author = author
     if publisher is not None: db_book.publisher = publisher
     if page_count is not None: db_book.page_count = page_count
+    if serial_number is not None: db_book.serial_number = serial_number
+    if book_number is not None: db_book.book_number = book_number
     if description is not None: db_book.description = description
     if is_restricted is not None: db_book.is_restricted = is_restricted
+
+    if publication_year is not None:
+        db_book.published_date = date(publication_year, 1, 1)
     
     if language_id is not None:
          if not db.query(language_model.Language).filter(language_model.Language.id == language_id).first():

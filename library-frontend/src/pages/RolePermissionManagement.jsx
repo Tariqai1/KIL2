@@ -364,8 +364,8 @@ const RolePermissionManagement = () => {
     };
 
     return (
-        <div className="ml-14 p-6 md:p-8 bg-gray-50 pr-8 mt-4">
-            <header className="flex justify-between items-center border-b border-gray-200 pb-4">
+        <div className="w-full px-2 sm:px-4 lg:px-6 py-2 md:py-4 bg-gray-50 mt-2">
+            <header className="flex justify-between items-center border-b border-gray-200 pb-4 mb-4">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
                         <ShieldCheckIcon className="h-8 w-8 text-indigo-600" />

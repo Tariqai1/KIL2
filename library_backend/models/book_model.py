@@ -133,4 +133,12 @@ class Book(Base):
     @property
     def pdf_file(self):
         return self.pdf_url
+
+    @property
+    def pages(self):
+        return self.page_count
+
+    @property
+    def publication_year(self):
+        return self.published_date.year if self.published_date else None
     # 🔥🔥🔥 MAGIC FIX ENDS HERE 🔥🔥🔥
