@@ -10,7 +10,7 @@ import '../assets/css/ManagementPages.css'; // Common styles
 // Helper to get full URL for images
 const getStaticUrl = (relativePath) => {
     if (!relativePath) return null;
-    const baseUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+    const baseUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://kil2-backend.onrender.com' : 'http://127.0.0.1:8000');
     return `${baseUrl}${relativePath}`;
 };
 

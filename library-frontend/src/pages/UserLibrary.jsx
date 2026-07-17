@@ -40,7 +40,7 @@ import {
 } from "@heroicons/react/24/solid";
 
 // --- Constants ---
-const API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? "https://kil2-backend.onrender.com" : "http://127.0.0.1:8000");
 const FALLBACK_NO_COVER = "https://via.placeholder.com/400x600?text=No+Cover";
 const FALLBACK_BROKEN = "https://via.placeholder.com/400x600?text=Image+Not+Found";
 

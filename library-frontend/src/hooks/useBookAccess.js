@@ -29,7 +29,7 @@ export const useBookAccess = (books, isAuth) => {
                         try {
                             // 🔑 API Call with Token
                             const res = await axios.get(
-                                `http://127.0.0.1:8000/api/restricted-requests/check-status?book_id=${book.id}`,
+                                `${import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? "https://kil2-backend.onrender.com" : "http://127.0.0.1:8000")}/api/restricted-requests/check-status?book_id=${book.id}`,
                                 {
                                     headers: {
                                         Authorization: `Bearer ${token}` // Token bhej rahe hain

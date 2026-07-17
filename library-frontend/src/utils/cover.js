@@ -4,7 +4,7 @@
 export const FALLBACK_COVER = "https://via.placeholder.com/300x450?text=No+Cover";
 
 // 2. Base URL (Safe check)
-const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, ""); // End ka slash hata diya taaki double slash na bane
+const API_BASE_URL = (import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "https://kil2-backend.onrender.com" : "http://127.0.0.1:8000")).replace(/\/$/, ""); // End ka slash hata diya taaki double slash na bane
 
 /**
  * [INTERNAL HELPER]

@@ -32,7 +32,7 @@ const BookCard = ({ book, type = 'book' }) => {
     const isBook = type === 'book';
     
     // Construct Image URL safely
-    const BASE_URL = "http://localhost:8000"; 
+    const BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? "https://kil2-backend.onrender.com" : "http://127.0.0.1:8000");
     const imgUrl = book.cover_image_url 
         ? (book.cover_image_url.startsWith('http') ? book.cover_image_url : `${BASE_URL}/${book.cover_image_url}`)
         : null;

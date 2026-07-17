@@ -28,7 +28,7 @@ import NotificationBell from "../common/NotificationBell";
 import DonationModal from "../donation/DonationModal";
 
 // ✅ CONFIG
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? "https://kil2-backend.onrender.com" : "http://127.0.0.1:8000");
 const MARKAZ_LOGO_URL = `${API_BASE_URL}/static/images/MarkazLogo.png`;
 
 // ==========================================

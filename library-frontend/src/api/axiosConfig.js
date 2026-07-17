@@ -3,6 +3,7 @@ import { authService } from "./authService";
 
 // ✅ Backend URL (local + server)
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+const FALLBACK_BASE_URL = import.meta.env.PROD ? "https://kil2-backend.onrender.com" : "http://127.0.0.1:8000";
 
 // ✅ Standard Key (same everywhere)
 const ACCESS_TOKEN_KEY = "access_token";
@@ -10,7 +11,7 @@ const REFRESH_TOKEN_KEY = "refresh_token";  // ✅ NEW
 const USER_KEY = "user_details";
 
 const api = axios.create({
-  baseURL: BASE_URL,
+  baseURL: BASE_URL || FALLBACK_BASE_URL,
   withCredentials: true,  // ✅ NEW: Enable cookies (httpOnly) for Issue #3 Fix
   headers: {
     "Content-Type": "application/json",
