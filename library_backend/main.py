@@ -154,12 +154,18 @@ origins = [o.strip() for o in _cors_env.split(",") if o.strip()] if _cors_env el
     "http://127.0.0.1:3000",
     "https://yourdomain.com",
     "https://kil-2-9yz1-five.vercel.app",  # ✅ Production Vercel frontend
+    "https://kil-2-3ouk.vercel.app",  # ✅ Current Vercel frontend in browser screenshot
     "https://kil2.pages.dev",  # ✅ Cloudflare Pages (optional)
 ]
+
+# Allow any current/future Vercel or Cloudflare Pages preview/custom domains.
+# This avoids breaking deployments when the Vercel project URL changes.
+cors_origin_regex = r"https://.*\.vercel\.app|https://.*\.pages\.dev"
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=cors_origin_regex,
     allow_credentials=True,  # ✅ REQUIRED for cookies
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],  # ✅ Whitelist (was "*")
     allow_headers=[  # ✅ Whitelist (was "*")
