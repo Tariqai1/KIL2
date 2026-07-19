@@ -9,7 +9,10 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Logout from "./pages/Logout";
 import NotFound from "./pages/NotFound";
+import AccessDenied from "./pages/AccessDenied";
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import { ADMIN_ALLOWED_ROLES } from "./config/accessControl";
+import AnalyticsTracker from "./components/common/AnalyticsTracker";
 
 // ================= LAYOUTS =================
 import Layout from "./components/layout/Layout";
@@ -53,16 +56,6 @@ const HomepageSettingsPage = lazy(() => import("./pages/Admin/HomepageSettingsPa
 // ✅ TEST / URDU EDITOR
 const UrduEditor = lazy(() => import("./components/UrduEditor/UrduEditor"));
 
-// ================= CONFIG =================
-const ADMIN_ALLOWED_ROLES = [
-  "admin",
-  "superadmin",
-  "editor",
-  "manager",
-  "librarian",
-  "staff",
-];
-
 // ================= HELPERS =================
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -94,6 +87,7 @@ function App() {
   return (
     <>
       <ScrollToTop />
+      <AnalyticsTracker />
       <Toaster position="top-center" />
 
       <Suspense fallback={<PageLoader />}>
@@ -118,6 +112,7 @@ function App() {
             <Route path="register" element={<Register />} />
             <Route path="forgot-password" element={<ForgotPassword />} />
             <Route path="reset-password" element={<ResetPassword />} />
+            <Route path="access-denied" element={<AccessDenied />} />
 
             <Route
               path="profile"
@@ -135,7 +130,7 @@ function App() {
           <Route
             path="admin"
             element={
-              <ProtectedRoute allowedRoles={ADMIN_ALLOWED_ROLES}>
+              <ProtectedRoute allowedRoles={ADMIN_ALLOWED_ROLES} redirectTo="/access-denied">
                 <Layout />
               </ProtectedRoute>
             }

@@ -1,6 +1,11 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthProvider";
+import {
+  getUserRole,
+  hasAnyRole,
+  ROLE_NAMES,
+} from "../../config/accessControl";
 
 // ✅ Loading Spinner
 const Spinner = () => (
@@ -28,7 +33,7 @@ const getStoredUser = () => {
   }
 };
 
-const ProtectedRoute = ({ children, allowedRoles = [] }) => {
+const ProtectedRoute = ({ children, allowedRoles = [], redirectTo = "/access-denied" }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
@@ -46,29 +51,17 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   }
 
   // ✅ 4) Normalize role
-  const userRole = (
-    currentUser.role?.name ||
-    currentUser.role ||
-    ""
-  ).toLowerCase();
+  const userRole = getUserRole(currentUser);
 
   // ✅ 5) Block public roles ALWAYS
-  const publicRoles = ["student", "member", "user", "public"];
+  const publicRoles = [ROLE_NAMES.STUDENT, ROLE_NAMES.MEMBER, ROLE_NAMES.USER, ROLE_NAMES.PUBLIC];
   if (publicRoles.includes(userRole)) {
     console.warn(`[Security] Public role blocked from admin: '${userRole}'`);
-    return <Navigate to="/" replace />;
+    return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
   // ✅ 6) Normalize allowed roles list
-  const normalizedAllowedRoles = allowedRoles.map((r) =>
-    String(r).toLowerCase()
-  );
-
-  // ✅ 7) Admin panel access ONLY by allowedRoles
-  const isAllowedByRole =
-    normalizedAllowedRoles.length > 0
-      ? normalizedAllowedRoles.includes(userRole)
-      : false;
+  const isAllowedByRole = allowedRoles.length > 0 ? hasAnyRole(currentUser, allowedRoles) : false;
 
   if (isAllowedByRole) {
     return children;
@@ -76,7 +69,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 
   // ❌ Not allowed role → blocked
   console.warn(`[Security] Blocked: Role='${userRole}'`);
-  return <Navigate to="/" replace />;
+  return <Navigate to={redirectTo} state={{ from: location }} replace />;
 };
 
 export default ProtectedRoute;

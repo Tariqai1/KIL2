@@ -43,6 +43,102 @@ const BookCardSkeleton = () => {
   );
 };
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? "https://kil2-backend.onrender.com" : "http://127.0.0.1:8000");
+
+const getBookImage = (book) => {
+  const rawUrl = book?.cover_image_url || book?.cover_image;
+  if (!rawUrl) return "https://via.placeholder.com/240x320?text=No+Cover";
+  if (typeof rawUrl === "string" && rawUrl.startsWith("http")) return rawUrl;
+  const path = String(rawUrl);
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  return `${API_BASE_URL}${cleanPath}`;
+};
+
+const getText = (value, fallback = "") => {
+  if (value === null || value === undefined) return fallback;
+  if (typeof value === "object") return value?.name || value?.title || fallback;
+  const str = String(value).trim();
+  return str.length ? str : fallback;
+};
+
+const getBookSubcategorySlugs = (book) => {
+  if (!Array.isArray(book?.subcategories)) return [];
+  return book.subcategories
+    .map((sub) => {
+      const label = getText(sub);
+      return label
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_|_$/g, "");
+    })
+    .filter(Boolean);
+};
+
+const getBookViews = (book) => {
+  const value = Number(book?.views ?? book?.view_count ?? book?.total_views ?? book?.hits ?? 0);
+  return Number.isFinite(value) ? value : 0;
+};
+
+const CompactBookCard = ({ book, label, meta, onClick, progress = null, chips = [] }) => (
+  <button
+    onClick={onClick}
+    className="group w-full rounded-2xl border border-slate-200 bg-white p-3 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+  >
+    <div className="flex gap-3">
+      <div className="h-20 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-slate-100 shadow-sm">
+        <img
+          src={getBookImage(book)}
+          alt={book?.title || "Book cover"}
+          className="h-full w-full object-cover"
+          loading="lazy"
+        />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-2">
+          <span className="inline-flex max-w-full rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+            {label}
+          </span>
+          {meta ? <span className="text-[11px] text-slate-400">{meta}</span> : null}
+        </div>
+        <h3 className="mt-2 line-clamp-2 text-sm font-bold leading-snug text-slate-900 group-hover:text-[#002147]">
+          {book?.title}
+        </h3>
+        <p className="mt-1 line-clamp-1 text-xs text-slate-500">
+          {getText(book?.author, "Unknown Author")}
+        </p>
+
+        {Array.isArray(chips) && chips.length > 0 ? (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {chips.slice(0, 2).map((chip) => (
+              <span
+                key={chip}
+                className="inline-flex max-w-full rounded-full bg-cyan-50 px-2 py-0.5 text-[10px] font-semibold text-cyan-700"
+              >
+                {chip}
+              </span>
+            ))}
+          </div>
+        ) : null}
+
+        {typeof progress === "number" && progress > 0 ? (
+          <div className="mt-3">
+            <div className="flex items-center justify-between text-[10px] font-medium text-slate-400">
+              <span>Reading progress</span>
+              <span>{Math.min(100, Math.max(0, Math.round(progress)))}%</span>
+            </div>
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-600"
+                style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+              />
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  </button>
+);
+
 const PublicHome = () => {
   const navigate = useNavigate();
   const { isAdmin, user, loading: authLoading } = useAuth(); // ✅ Auth Hook
@@ -65,17 +161,7 @@ const PublicHome = () => {
   // Filters
   const [sortBy, setSortBy] = useState("newest");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
-
-  const featuredBooks = useMemo(() => {
-    if (!Array.isArray(books) || books.length === 0) return [];
-    const featuredIds = homepageSettings?.sections?.featured?.featured_books || [];
-    if (Array.isArray(featuredIds) && featuredIds.length) {
-      const byId = new Map(books.map((b) => [b.id, b]));
-      const list = featuredIds.map((id) => byId.get(id)).filter(Boolean);
-      if (list.length) return list;
-    }
-    return books.slice(0, 6);
-  }, [books]);
+  const [recentReads, setRecentReads] = useState([]);
 
   // Router location state (preSearch)
   const location = useLocation();
@@ -94,6 +180,88 @@ const PublicHome = () => {
       return [];
     }
   });
+
+  const featuredBooks = useMemo(() => {
+    if (!Array.isArray(books) || books.length === 0) return [];
+    const featuredIds = homepageSettings?.sections?.featured?.featured_books || [];
+    if (Array.isArray(featuredIds) && featuredIds.length) {
+      const byId = new Map(books.map((b) => [b.id, b]));
+      const list = featuredIds.map((id) => byId.get(id)).filter(Boolean);
+      if (list.length) return list;
+    }
+    return books.slice(0, 6);
+  }, [books]);
+
+  const recentReadBooks = useMemo(() => {
+    if (!Array.isArray(recentReads) || recentReads.length === 0) return [];
+    const byId = new Map(books.map((book) => [String(book.id), book]));
+    return recentReads
+      .map((entry) => ({ ...entry, book: byId.get(String(entry.book_id)) }))
+      .filter((entry) => entry.book)
+      .slice(0, 4);
+  }, [books, recentReads]);
+
+  const recommendedBooks = useMemo(() => {
+    if (!Array.isArray(books) || books.length === 0) return [];
+
+    const favoriteSet = new Set(favorites.map((id) => String(id)));
+    const recentSeedBooks = recentReadBooks.map((entry) => entry.book).filter(Boolean);
+    const seedBooks = [...recentSeedBooks, ...books.filter((book) => favoriteSet.has(String(book.id)))];
+    const seedCategorySlugs = new Set(seedBooks.flatMap((book) => getBookSubcategorySlugs(book)));
+    const seedLanguages = new Set(seedBooks.map((book) => String(book?.language?.name || book?.language?.Name || book?.language || "").toLowerCase()).filter(Boolean));
+    const seedAuthors = new Set(seedBooks.map((book) => getText(book?.author).toLowerCase()).filter(Boolean));
+
+    const scored = books
+      .filter((book) => !favoriteSet.has(String(book.id)))
+      .map((book) => {
+        let score = 0;
+        const reasons = [];
+        const slugs = getBookSubcategorySlugs(book);
+        const lang = String(book?.language?.name || book?.language?.Name || book?.language || "").toLowerCase();
+        const author = getText(book?.author).toLowerCase();
+
+        if (slugs.some((slug) => seedCategorySlugs.has(slug))) {
+          score += 4;
+          reasons.push("Similar category");
+        }
+        if (lang && seedLanguages.has(lang)) {
+          score += 3;
+          reasons.push("Same language");
+        }
+        if (author && seedAuthors.has(author)) {
+          score += 2;
+          reasons.push("Same author");
+        }
+        if (recentReadBooks.length > 0 && book.id > recentReadBooks[0].book.id) {
+          score += 1;
+          reasons.push("Fresh pick");
+        }
+        const popularityBoost = Math.min(3, Math.round(getBookViews(book) / 25));
+        if (popularityBoost > 0) {
+          score += popularityBoost;
+          reasons.push("Popular");
+        }
+
+        if (reasons.length === 0) {
+          reasons.push("Good match");
+        }
+
+        return { book, score, reasons };
+      })
+      .sort((a, b) => b.score - a.score || getBookViews(b.book) - getBookViews(a.book))
+      .slice(0, 4)
+      .map((item) => ({ book: item.book, reasons: item.reasons }));
+
+    if (scored.length > 0) return scored;
+    return books.slice(0, 4).map((book) => ({ book, reasons: ["Good match"] }));
+  }, [books, favorites, recentReadBooks]);
+
+  const trendingBooks = useMemo(() => {
+    if (!Array.isArray(books) || books.length === 0) return [];
+    return [...books]
+      .sort((a, b) => getBookViews(b) - getBookViews(a) || new Date(b?.created_at || b?.published_date || 0) - new Date(a?.created_at || a?.published_date || 0))
+      .slice(0, 4);
+  }, [books]);
 
   // Categories list
   const categories = useMemo(
@@ -154,6 +322,16 @@ const PublicHome = () => {
     loadBooks();
   }, [loadBooks]);
 
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("bookNest_recent_reads");
+      const parsed = saved ? JSON.parse(saved) : [];
+      setRecentReads(Array.isArray(parsed) ? parsed : []);
+    } catch {
+      setRecentReads([]);
+    }
+  }, []);
+
   // ✅ NEW: Fetch categories from database (admin-added)
   useEffect(() => {
     const loadCategories = async () => {
@@ -161,7 +339,6 @@ const PublicHome = () => {
         const data = await categoryService.getAllCategories();
         const categoryList = Array.isArray(data) ? data : data?.categories || [];
         setDynamicCategories(categoryList);
-        console.log("✅ Dynamic categories loaded:", categoryList);
       } catch (error) {
         console.warn("⚠️ Could not load categories from DB, using fallback:", error);
         setDynamicCategories([]);
@@ -229,6 +406,10 @@ const PublicHome = () => {
     setSelectedLanguage("all");
     setSortBy("newest");
     setShowFavoritesOnly(false);
+  };
+
+  const handleResumeReading = (bookId) => {
+    navigate(`/read/${bookId}`);
   };
 
   // --- 9) SORTING (after filters) ---
@@ -318,7 +499,7 @@ const PublicHome = () => {
       {getSectionConfig('hero', { enabled: true }).enabled !== false && <LibraryHero />}
 
       {getSectionConfig('hero', { enabled: true }).enabled !== false && (
-      <div className="max-w-7xl mx-auto px-4 py-12">
+      <div className="app-shell-container py-12">
         <div className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-950 px-6 py-10 shadow-[0_40px_120px_-60px_rgba(15,23,42,0.85)] sm:px-10 sm:py-14">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.18),_transparent_25%),radial-gradient(circle_at_bottom_right,_rgba(168,85,247,0.16),_transparent_22%)]" />
           <div className="relative grid gap-8 lg:grid-cols-[1.4fr_0.9fr] items-start">
@@ -328,11 +509,11 @@ const PublicHome = () => {
                 {heroBadge}
               </span>
 
-              <h2 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
+              <h2 className="page-title max-w-3xl text-white">
                 {getSectionConfig('hero', { title: 'Welcome to the future of the library' }).title || 'Welcome to the future of the library'}
               </h2>
 
-              <p className="max-w-2xl text-sm leading-7 text-slate-300 md:text-base">
+              <p className="body-copy max-w-2xl text-slate-300 md:text-[0.98rem]">
                 {getSectionConfig('hero', { description: 'Kokan Library now surfaces trusted Islamic resources with a digital-first, future-ready lens.' }).description || 'Kokan Library now surfaces trusted Islamic resources with a digital-first, future-ready lens.'}
               </p>
 
@@ -352,16 +533,16 @@ const PublicHome = () => {
               {showHeroStats ? (
                 <div className="grid gap-4 sm:grid-cols-3">
                   <div className="rounded-3xl border border-cyan-500/15 bg-white/5 p-5 shadow-[0_30px_60px_-40px_rgba(96,165,250,0.35)] backdrop-blur-xl">
-                    <p className="text-4xl font-bold text-white">50+</p>
-                    <p className="mt-2 text-xs uppercase tracking-[0.3em] text-cyan-200/80">Islamic Books</p>
+                    <p className="text-[clamp(1.75rem,1.2rem+1.8vw,2.6rem)] font-semibold text-white">50+</p>
+                    <p className="mt-2 eyebrow text-cyan-200/80">Islamic Books</p>
                   </div>
                   <div className="rounded-3xl border border-violet-500/15 bg-white/5 p-5 shadow-[0_30px_60px_-40px_rgba(168,85,247,0.28)] backdrop-blur-xl">
-                    <p className="text-4xl font-bold text-white">10+</p>
-                    <p className="mt-2 text-xs uppercase tracking-[0.3em] text-violet-200/80">Categories</p>
+                    <p className="text-[clamp(1.75rem,1.2rem+1.8vw,2.6rem)] font-semibold text-white">10+</p>
+                    <p className="mt-2 eyebrow text-violet-200/80">Categories</p>
                   </div>
                   <div className="rounded-3xl border border-slate-400/10 bg-white/5 p-5 shadow-[0_30px_60px_-40px_rgba(148,163,184,0.25)] backdrop-blur-xl">
-                    <p className="text-4xl font-bold text-white">100%</p>
-                    <p className="mt-2 text-xs uppercase tracking-[0.3em] text-slate-300/80">Free Access</p>
+                    <p className="text-[clamp(1.75rem,1.2rem+1.8vw,2.6rem)] font-semibold text-white">100%</p>
+                    <p className="mt-2 eyebrow text-slate-300/80">Free Access</p>
                   </div>
                 </div>
               ) : null}
@@ -370,30 +551,30 @@ const PublicHome = () => {
             <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/70 p-6 shadow-2xl">
               <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-cyan-400 via-blue-400 to-violet-400 opacity-70" />
               <div className="space-y-5">
-                <h3 className="text-2xl font-semibold tracking-tight text-white">Why this library feels futuristic</h3>
+                <h3 className="section-title text-white">Why this library feels futuristic</h3>
                 <div className="grid gap-3 text-sm text-slate-300 md:grid-cols-2">
                   <div className="rounded-2xl border border-slate-700/80 bg-slate-950/70 p-4 shadow-lg">
-                    <p className="font-semibold text-white">Authentic Sources</p>
+                    <p className="card-title text-white">Authentic Sources</p>
                     <p className="mt-1 text-slate-400">Every book is verified from scholarly and reliable references.</p>
                   </div>
                   <div className="rounded-2xl border border-slate-700/80 bg-slate-950/70 p-4 shadow-lg">
-                    <p className="font-semibold text-white">Easy Categorization</p>
+                    <p className="card-title text-white">Easy Categorization</p>
                     <p className="mt-1 text-slate-400">Quran, Hadith, Fiqh, and Seerah are organized into clear sections.</p>
                   </div>
                   <div className="rounded-2xl border border-slate-700/80 bg-slate-950/70 p-4 shadow-lg">
-                    <p className="font-semibold text-white">Multi-language Support</p>
+                    <p className="card-title text-white">Multi-language Support</p>
                     <p className="mt-1 text-slate-400">Arabic, Urdu, and English books are available in one place.</p>
                   </div>
                   <div className="rounded-2xl border border-slate-700/80 bg-slate-950/70 p-4 shadow-lg">
-                    <p className="font-semibold text-white">Offline Reading</p>
+                    <p className="card-title text-white">Offline Reading</p>
                     <p className="mt-1 text-slate-400">Download and read books without needing internet access.</p>
                   </div>
                   <div className="rounded-2xl border border-slate-700/80 bg-slate-950/70 p-4 shadow-lg">
-                    <p className="font-semibold text-white">Bookmark & Notes</p>
+                    <p className="card-title text-white">Bookmark & Notes</p>
                     <p className="mt-1 text-slate-400">Save favorite books and add personal notes as you read.</p>
                   </div>
                   <div className="rounded-2xl border border-slate-700/80 bg-slate-950/70 p-4 shadow-lg">
-                    <p className="font-semibold text-white">Free & Open Access</p>
+                    <p className="card-title text-white">Free & Open Access</p>
                     <p className="mt-1 text-slate-400">Everything is free and dynamically accessible for every reader.</p>
                   </div>
                 </div>
@@ -406,35 +587,96 @@ const PublicHome = () => {
       )}
 
       {getSectionConfig('search', { enabled: true }).enabled !== false && showSearchStripBlock && (
-      <div className="max-w-7xl mx-auto px-4 pb-8">
-        <div className="rounded-[2rem] border border-white/10 bg-slate-950/85 p-6 shadow-2xl">
-          <div className="mb-6 text-slate-200">
-            <p className="text-sm uppercase tracking-[0.3em] text-cyan-300 font-semibold">{getSectionConfig('search', { title: 'Library Search' }).title || 'Library Search'}</p>
-            <h3 className="text-2xl font-semibold text-white">{getSectionConfig('search', { subtitle: 'Search the library collection' }).subtitle || 'Search the library collection'}</h3>
-            <p className="mt-2 text-sm text-slate-400">{getSectionConfig('search', { description: 'Find books, authors, publishers and smart recommendations right from the library section.' }).description || 'Find books, authors, publishers and smart recommendations right from the library section.'}</p>
+      <div className="app-shell-container scroll-mt-24 pb-8" id="search">
+        <LibrarySearchStrip
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          title={getSectionConfig('search', { title: 'Library Search' }).title || 'Library Search'}
+          subtitle={getSectionConfig('search', { subtitle: 'Search the library collection' }).subtitle || 'Search the library collection'}
+          description={getSectionConfig('search', { description: 'Find books, authors, publishers and smart recommendations right from the library section.' }).description || 'Find books, authors, publishers and smart recommendations right from the library section.'}
+          placeholder={getSectionConfig('search', { placeholder: 'Search by title, author, or ISBN...' }).placeholder || 'Search by title, author, or ISBN...'}
+          showHint={Boolean(getSectionConfig('search', { show_hint: true }).show_hint !== false)}
+          enableVoice={Boolean(getSectionConfig('search', { enable_voice: true }).enable_voice !== false)}
+          enableDeepSearch={Boolean(getSectionConfig('search', { enable_deep: true }).enable_deep !== false)}
+          enableSuggestions={Boolean(getSectionConfig('search', { show_suggestions: true }).show_suggestions !== false)}
+        />
+      </div>
+      )}
+
+      {getSectionConfig('continue_reading', { enabled: true }).enabled !== false && recentReadBooks.length > 0 && (
+      <div className="app-shell-container pb-8">
+        <div className="mb-4 flex items-end justify-between gap-3">
+          <div>
+            <p className="eyebrow text-emerald-600">Continue reading</p>
+            <h3 className="section-title text-slate-900">Pick up where you left off</h3>
           </div>
-          <LibrarySearchStrip
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            title={getSectionConfig('search', { title: 'Library Search' }).title || 'Library Search'}
-            subtitle={getSectionConfig('search', { subtitle: 'Search the library collection' }).subtitle || 'Search the library collection'}
-            description={getSectionConfig('search', { description: 'Find books, authors, publishers and smart recommendations right from the library section.' }).description || 'Find books, authors, publishers and smart recommendations right from the library section.'}
-            placeholder={getSectionConfig('search', { placeholder: 'Search by title, author, or ISBN...' }).placeholder || 'Search by title, author, or ISBN...'}
-            showHint={Boolean(getSectionConfig('search', { show_hint: true }).show_hint !== false)}
-            enableVoice={Boolean(getSectionConfig('search', { enable_voice: true }).enable_voice !== false)}
-            enableDeepSearch={Boolean(getSectionConfig('search', { enable_deep: true }).enable_deep !== false)}
-            enableSuggestions={Boolean(getSectionConfig('search', { show_suggestions: true }).show_suggestions !== false)}
-          />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {recentReadBooks.map((entry) => (
+            <CompactBookCard
+              key={entry.book.id}
+              book={entry.book}
+              label={`Page ${entry.last_page_read || 1}`}
+              meta={entry.total_pages > 0 ? `Page ${entry.last_page_read || 1} of ${entry.total_pages}` : (entry.updated_at ? new Date(entry.updated_at).toLocaleDateString("en-IN", { month: "short", day: "numeric" }) : "Recently")}
+              progress={entry.total_pages > 0 ? ((Number(entry.last_page_read || 1) / Number(entry.total_pages)) * 100) : null}
+              onClick={() => handleResumeReading(entry.book.id)}
+            />
+          ))}
+        </div>
+      </div>
+      )}
+
+      {getSectionConfig('recommended', { enabled: true }).enabled !== false && recommendedBooks.length > 0 && (
+      <div className="app-shell-container pb-8">
+        <div className="mb-4 flex items-end justify-between gap-3">
+          <div>
+            <p className="eyebrow text-cyan-600">Recommended for you</p>
+            <h3 className="section-title text-slate-900">Smart picks based on your activity</h3>
+          </div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {recommendedBooks.map((book) => (
+            <CompactBookCard
+              key={book.book.id}
+              book={book.book}
+              label="Suggested"
+              meta={book.book?.language?.name || book.book?.language || ""}
+              chips={book.reasons}
+              onClick={() => setSelectedBook(book.book)}
+            />
+          ))}
+        </div>
+      </div>
+      )}
+
+      {getSectionConfig('trending', { enabled: true }).enabled !== false && trendingBooks.length > 0 && (
+      <div className="app-shell-container pb-12">
+        <div className="mb-4 flex items-end justify-between gap-3">
+          <div>
+            <p className="eyebrow text-amber-600">Trending books</p>
+            <h3 className="section-title text-slate-900">Most visible right now</h3>
+          </div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {trendingBooks.map((book, index) => (
+            <CompactBookCard
+              key={book.id}
+              book={book}
+              label={`#${index + 1}`}
+              meta={`${getBookViews(book)} views`}
+              onClick={() => setSelectedBook(book)}
+            />
+          ))}
         </div>
       </div>
       )}
 
       {getSectionConfig('featured', { enabled: true }).enabled !== false && showFeaturedPanel && (
-      <div className="max-w-7xl mx-auto px-4 pb-12">
+      <div className="app-shell-container pb-12">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-6">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-indigo-600 font-bold">{getSectionConfig('featured', { title: 'Library Highlights' }).title || 'Library Highlights'}</p>
-            <h2 className="text-3xl font-bold text-slate-900">{getSectionConfig('featured', { subtitle: 'Recommended by the library team' }).subtitle || 'Recommended by the library team'}</h2>
+            <p className="eyebrow text-indigo-600">{getSectionConfig('featured', { title: 'Library Highlights' }).title || 'Library Highlights'}</p>
+            <h2 className="section-title text-slate-900">{getSectionConfig('featured', { subtitle: 'Recommended by the library team' }).subtitle || 'Recommended by the library team'}</h2>
           </div>
           <button
             onClick={() => {
@@ -474,14 +716,14 @@ const PublicHome = () => {
       )}
 
       {getSectionConfig('catalog', { enabled: true }).enabled !== false && (
-      <div className="max-w-7xl mx-auto px-4 py-8" id="book-grid">
+      <div className="app-shell-container py-8" id="book-grid">
         {/* Header + Stats */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8 border-b border-gray-200 pb-4">
           <div>
-            <h2 className="text-3xl font-serif font-bold text-[#002147]">
+            <h2 className="page-title font-serif text-[#002147] max-w-4xl">
               {searchTerm ? `Results for "${searchTerm}"` : getSectionConfig('catalog', { title: 'Explore the Library' }).title || 'Explore the Library'}
             </h2>
-            <p className="text-gray-500 text-sm mt-1">
+            <p className="body-copy mt-1">
               {getSectionConfig('catalog', { description: 'Browse our handpicked selection, curated recommendations, and full catalog from Kokan Islamic Library.' }).description || 'Browse our handpicked selection, curated recommendations, and full catalog from Kokan Islamic Library.'}
             </p>
           </div>
@@ -628,7 +870,7 @@ const PublicHome = () => {
       )}
 
       {getSectionConfig('posts', { enabled: true }).enabled !== false || getSectionConfig('donation', { enabled: true }).enabled !== false ? (
-      <div className="max-w-7xl mx-auto px-4 py-16 border-t border-gray-200">
+      <div className="app-shell-container py-16 border-t border-gray-200">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
 
           {getSectionConfig('posts', { enabled: true }).enabled !== false && (

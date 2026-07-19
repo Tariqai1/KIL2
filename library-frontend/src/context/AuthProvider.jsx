@@ -7,6 +7,13 @@ import React, {
 } from "react";
 import { jwtDecode } from "jwt-decode";
 import { authService } from "../api/authService";
+import {
+  getUserPermissions,
+  getUserRole,
+  hasAnyRole,
+  hasPermission,
+  isAdminRole,
+} from "../config/accessControl";
 
 // 1. Context Create
 export const AuthContext = createContext(null);
@@ -21,18 +28,6 @@ export const AuthProvider = ({ children }) => {
   const [role, setRole] = useState(null);
   const [isAuth, setIsAuth] = useState(false);
   const [loading, setLoading] = useState(true);
-
-  // --- Helper: Role Extractor ---
-  const extractRole = (userData) => {
-    if (!userData) return null;
-    return userData.role?.name || userData.role || "User";
-  };
-
-  // --- Helper: Permission Extractor ---
-  const extractPermissions = (userData) => {
-    if (!userData) return [];
-    return userData.permissions || [];
-  };
 
   /**
    * Logout Action
@@ -81,7 +76,7 @@ export const AuthProvider = ({ children }) => {
 
     // ✅ Update state
     setUser(userData);
-    setRole(extractRole(userData));
+    setRole(getUserRole(userData));
     setIsAuth(true);
   }, []);
 
@@ -104,7 +99,7 @@ export const AuthProvider = ({ children }) => {
             logout();
           } else {
             setUser(storedUser);
-            setRole(extractRole(storedUser));
+            setRole(getUserRole(storedUser));
             setIsAuth(true);
           }
         }
@@ -119,21 +114,22 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   }, [logout]);
 
-  const currentPermissions = extractPermissions(user);
+  const currentRole = getUserRole(user || { role });
+  const currentPermissions = getUserPermissions(user);
+  const adminFlag = isAdminRole(currentRole);
 
   const value = {
     user,
-    role,
+    role: currentRole,
     isAuth,
     loading, // ✅ ProtectedRoute me loading use hoga
     login,
     logout,
 
     // Helper flags
-    isAdmin:
-      String(role || "").toLowerCase() === "admin" ||
-      String(role || "").toLowerCase() === "superadmin" ||
-      String(role || "").toLowerCase() === "administrator",
+    isAdmin: adminFlag,
+    hasPermission: (permCode) => hasPermission(user || { role: currentRole }, permCode),
+    hasRole: (roles = []) => hasAnyRole(user || { role: currentRole }, roles),
 
     permissions: currentPermissions,
   };

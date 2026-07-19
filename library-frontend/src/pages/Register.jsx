@@ -133,7 +133,7 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 via-white to-cyan-50 p-6 sm:p-10">
+    <div className="min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 via-white to-cyan-50 px-3 py-6 sm:px-6 sm:py-10 lg:px-8">
 
       <div className="flex-1 flex flex-col items-center justify-center overflow-y-auto relative">
 
@@ -144,7 +144,7 @@ const Register = () => {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: "easeOut" }}
-          className="relative z-10 w-full max-w-[500px] rounded-3xl border border-slate-200 bg-white/90 backdrop-blur-sm p-6 sm:p-8 shadow-xl"
+          className="relative z-10 w-full max-w-[34rem] rounded-3xl border border-slate-200 bg-white/90 backdrop-blur-sm p-4 sm:p-6 lg:p-8 shadow-xl"
         >
           <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 rounded-2xl bg-[#002147] flex items-center justify-center shadow-lg shadow-blue-900/25">
@@ -158,7 +158,7 @@ const Register = () => {
 
           {/* Heading */}
           <div className="mb-7">
-            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Create Account</h2>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Create Account</h2>
             <p className="text-slate-500 text-sm mt-1.5 font-medium">Fill details and start using your library profile</p>
           </div>
 

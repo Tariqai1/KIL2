@@ -1,6 +1,6 @@
 {
-  "theme": "night",
-  "language": "ur",
+  "theme": "aurora",
+  "language": "en",
   "hero_badge": "tARIQUE",
   "site_title": "",
   "sections": {
@@ -18,11 +18,15 @@
       "secondary_cta_url": "/contact"
     },
     "search": {
-      "enabled": false,
+      "enabled": true,
       "order": 1,
       "title": "Library Search",
       "subtitle": "Find books, authors, and collections",
-      "description": "Search, filters, and discovery tools"
+      "description": "Search, filters, and discovery tools",
+      "show_hint": false,
+      "enable_voice": false,
+      "enable_deep": false,
+      "show_suggestions": false
     },
     "featured": {
       "enabled": false,
@@ -42,14 +46,14 @@
       "description": "Main book browsing grid"
     },
     "posts": {
-      "enabled": false,
+      "enabled": true,
       "order": 4,
       "title": "Latest Announcements",
       "subtitle": "News and updates",
       "description": "News and latest updates"
     },
     "donation": {
-      "enabled": false,
+      "enabled": true,
       "order": 5,
       "title": "Support the Library",
       "subtitle": "Help the library grow",
@@ -57,11 +61,11 @@
     }
   },
   "layout": {
-    "show_stats": false,
+    "show_stats": true,
     "show_trending": true,
     "show_favorites": true,
     "show_search_strip": false,
-    "show_featured_books": false,
-    "show_donation_panel": false
+    "show_featured_books": true,
+    "show_donation_panel": true
   }
 }

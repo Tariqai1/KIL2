@@ -140,7 +140,7 @@ const LandingPostsPreview = () => {
             <AnimatePresence>
                 {selectedPost && (
                     <motion.div
-                        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+                        className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 p-2 backdrop-blur-sm sm:items-center sm:p-4"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -152,23 +152,23 @@ const LandingPostsPreview = () => {
                             exit={{ scale: 0.95, opacity: 0 }}
                             transition={{ duration: 0.2 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full overflow-hidden"
+                            className="w-full max-w-3xl max-h-[calc(100vh-1rem)] overflow-y-auto rounded-2xl bg-white shadow-2xl sm:max-h-[90vh]"
                         >
                             {/* Close */}
                             <button
                                 onClick={() => setSelectedPost(null)}
-                                className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white rounded-full p-2"
+                                className="absolute right-3 top-3 rounded-full bg-black/60 p-2 text-white hover:bg-black/80 sm:right-4 sm:top-4"
                             >
                                 <XMarkIcon className="w-5 h-5" />
                             </button>
 
                             {/* Image */}
-                            <div className="bg-slate-100 h-[70vh] overflow-hidden">
+                            <div className="max-h-[40vh] overflow-hidden bg-slate-100 sm:max-h-[70vh]">
                                 {getFileUrl(selectedPost?.file_url) ? (
                                     <img
                                         src={getFileUrl(selectedPost.file_url)}
                                         alt={selectedPost.title}
-                                        className="w-auto h-full object-contain mx-auto"
+                                        className="mx-auto h-full w-full object-contain"
                                     />
                                 ) : (
                                     <div className="h-64 flex items-center justify-center">
@@ -178,15 +178,15 @@ const LandingPostsPreview = () => {
                             </div>
 
                             {/* Content */}
-                            <div className="p-8">
-                                <div className="text-xs text-slate-500 flex items-center gap-2 mb-3">
+                            <div className="p-4 sm:p-8">
+                                <div className="mb-3 flex items-center gap-2 text-xs text-slate-500">
                                     <CalendarDaysIcon className="w-4 h-4" />
                                     {selectedPost?.created_at
                                         ? new Date(selectedPost.created_at).toLocaleDateString()
                                         : "N/A"}
                                 </div>
 
-                                <h2 className="text-2xl font-extrabold text-[#002147] mb-4">
+                                <h2 className="mb-4 text-xl font-extrabold text-[#002147] sm:text-2xl">
                                     {selectedPost?.title}
                                 </h2>
 

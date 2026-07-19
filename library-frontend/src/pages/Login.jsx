@@ -33,6 +33,7 @@ import toast from "react-hot-toast";
 import useAuth from "../hooks/useAuth";
 import { authService } from "../api/authService";
 import apiClient from "../api/apiClient";
+import { isAdminUser } from "../config/accessControl";
 
 import {
   UserIcon,
@@ -44,16 +45,6 @@ import {
 } from "@heroicons/react/24/outline";
 
 // ─── Constants ────────────────────────────────────────────
-const ADMIN_ROLES = new Set([
-  "admin",
-  "superadmin",
-  "administrator",
-  "manager",
-  "editor",
-  "librarian",
-  "staff",
-]);
-
 const GOOGLE_CLIENT_ID = (import.meta.env.VITE_GOOGLE_CLIENT_ID || "").trim();
 const GOOGLE_AUTH_ENABLED = Boolean(GOOGLE_CLIENT_ID);
 
@@ -61,16 +52,6 @@ const MAX_ATTEMPTS = 3;
 const COOLDOWN_MS = 30_000;
 
 // ─── Pure Utilities ───────────────────────────────────────
-const extractRole = (user) => {
-  if (!user?.role) return "";
-  if (typeof user.role === "string") return user.role.toLowerCase().trim();
-  if (typeof user.role === "object" && user.role?.name)
-    return String(user.role.name).toLowerCase().trim();
-  return "";
-};
-
-const isAdminUser = (user) => ADMIN_ROLES.has(extractRole(user));
-
 // ─── Google SVG (inline — no external image dep) ─────────
 const GoogleIcon = () => (
   <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
@@ -319,7 +300,7 @@ const Login = () => {
   // RENDER
   // ═══════════════════════════════════════════════════════════
   return (
-    <div className="min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 via-white to-cyan-50 p-6 sm:p-10">
+    <div className="min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 via-white to-cyan-50 px-3 py-6 sm:px-6 sm:py-10 lg:px-8">
 
       <div aria-hidden="true" className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none opacity-70" />
       <div aria-hidden="true" className="absolute bottom-0 left-0 w-72 h-72 bg-gradient-to-tr from-sky-50 to-cyan-50 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none opacity-70" />
@@ -328,7 +309,7 @@ const Login = () => {
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: "easeOut" }}
-        className="relative z-10 w-full max-w-[430px] rounded-3xl border border-slate-200 bg-white/90 backdrop-blur-sm p-6 sm:p-8 shadow-xl"
+        className="relative z-10 responsive-card rounded-3xl border border-slate-200 bg-white/90 backdrop-blur-sm p-4 sm:p-6 lg:p-8 shadow-xl"
       >
         <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 rounded-2xl bg-[#002147] flex items-center justify-center shadow-lg shadow-blue-900/25">
@@ -341,7 +322,7 @@ const Login = () => {
         </div>
 
         <div className="mb-8">
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Welcome back</h2>
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Welcome back</h2>
           <p className="text-slate-500 text-sm mt-1.5 font-medium">
             Sign in to continue to your account
           </p>
@@ -530,7 +511,7 @@ const Login = () => {
         >
           <p className="font-bold mb-1.5">🔧 Dev credentials</p>
           <p>User: <code className="bg-amber-100 px-1 rounded font-mono">admin</code></p>
-          <p>Pass: <code className="bg-amber-100 px-1 rounded font-mono">admin123</code></p>
+          <p>Pass: <code className="bg-amber-100 px-1 rounded font-mono">admin</code></p>
         </motion.div>
       )}
     </div>

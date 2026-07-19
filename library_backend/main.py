@@ -62,6 +62,7 @@ from controllers import (
     post_controller,
     donation_controller,
     interaction_controller,
+    analytics_controller,
     settings_controller
 )
 
@@ -308,6 +309,7 @@ api_router.include_router(book_read_controller.router, prefix="/books", tags=["B
 api_router.include_router(book_management_controller.router, prefix="/books", tags=["Books (Manage)"])
 api_router.include_router(post_controller.router, prefix="/posts", tags=["Markaz News"])
 api_router.include_router(donation_controller.router, tags=["Donation"]) # ✅ Moved INSIDE /api to fix 404
+api_router.include_router(analytics_controller.router, prefix="/analytics", tags=["Analytics"])
 api_router.include_router(settings_controller.router, prefix="/settings", tags=["Homepage Settings"])
 
 # Register Main Router

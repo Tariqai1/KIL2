@@ -22,8 +22,8 @@ const LibraryHero = () => {
   useEffect(() => {
     const move = (e) => {
       setMouse({
-        x: (e.clientX / window.innerWidth - 0.5) * 18,
-        y: (e.clientY / window.innerHeight - 0.5) * 18,
+        x: (e.clientX / window.innerWidth - 0.5) * 12,
+        y: (e.clientY / window.innerHeight - 0.5) * 12,
       });
     };
     window.addEventListener("mousemove", move);
@@ -47,7 +47,7 @@ const LibraryHero = () => {
   return (
     <motion.div
       style={{ scale }}
-      className="relative w-screen left-1/2 -translate-x-1/2 overflow-hidden bg-[#000814]"
+      className="relative w-full overflow-hidden bg-[#000814]"
     >
       {/* ================= BACKGROUND ================= */}
       <div
@@ -77,10 +77,10 @@ const LibraryHero = () => {
 
         {/* ===== BINARY CODE RAIN ===== */}
         {night &&
-          [...Array(30)].map((_, i) => (
+          [...Array(10)].map((_, i) => (
             <span
               key={i}
-              className="absolute text-green-400/20 text-xs font-mono animate-binary"
+              className="absolute hidden text-[10px] font-mono text-green-400/14 animate-binary sm:block"
               style={{
                 left: `${Math.random() * 100}%`,
                 animationDelay: `${i * 0.3}s`,
@@ -92,10 +92,10 @@ const LibraryHero = () => {
 
         {/* ===== NETWORK NODES ===== */}
         {night &&
-          [...Array(20)].map((_, i) => (
+          [...Array(6)].map((_, i) => (
             <span
               key={i}
-              className="absolute w-2 h-2 rounded-full bg-cyan-300/70 animate-node"
+              className="absolute hidden h-2 w-2 rounded-full bg-cyan-300/25 blur-[1px] animate-node sm:block"
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
@@ -105,23 +105,38 @@ const LibraryHero = () => {
 
         {/* ===== STARS ===== */}
         {night &&
-          [...Array(70)].map((_, i) => (
+          [...Array(28)].map((_, i) => (
             <span
               key={i}
               className="absolute rounded-full animate-star"
               style={{
-                width: `${Math.random() * 2 + 1}px`,
-                height: `${Math.random() * 2 + 1}px`,
+                width: `${Math.random() * 1.8 + 0.8}px`,
+                height: `${Math.random() * 1.8 + 0.8}px`,
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
                 backgroundColor: STAR_COLORS[i % STAR_COLORS.length],
                 boxShadow: `0 0 6px ${
                   STAR_COLORS[i % STAR_COLORS.length]
                 }`,
-                animationDuration: `${Math.random() * 20 + 15}s`,
+                animationDuration: `${Math.random() * 24 + 18}s`,
               }}
             />
           ))}
+
+        {/* ===== SOFT FLOATING ORBS ===== */}
+        {[...Array(2)].map((_, i) => (
+          <span
+            key={`orb-${i}`}
+            className="absolute rounded-full bg-cyan-300/10 blur-3xl animate-orb"
+            style={{
+              width: `${140 + i * 34}px`,
+              height: `${140 + i * 34}px`,
+              left: `${12 + i * 46}%`,
+              top: `${10 + i * 14}%`,
+              animationDelay: `${i * 1.2}s`,
+            }}
+          />
+        ))}
 
         {/* ===== SHOOTING STAR ===== */}
         {night && shoot && (
@@ -161,62 +176,59 @@ const LibraryHero = () => {
       </button> */}
 
       {/* ================= CONTENT ================= */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 py-20">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-12">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:py-12 md:py-20">
+        <div className="mx-auto max-w-4xl rounded-[2rem] border border-white/10 bg-white/6 p-4 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:p-6 md:p-8">
+          <div className="flex flex-col items-center justify-between gap-5 text-center md:gap-8">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-cyan-200/80 backdrop-blur-sm">
+              <BuildingLibraryIcon className="h-3.5 w-3.5 text-[#F4A261]" />
+              Markaz Library
+            </div>
 
-          {/* Left */}
-          <motion.img
-            src="https://cdn-icons-png.flaticon.com/512/3330/3330314.png"
-            className="w-56 drop-shadow-[0_30px_60px_rgba(0,0,0,.9)]"
-            animate={{ y: [0, -12, 0] }}
-            transition={{ duration: 6, repeat: Infinity }}
-          />
+            <div className="relative w-full">
+              {night && (
+                <div
+                  className="absolute left-1/2 top-1 -translate-x-1/2 h-32 w-32 rounded-full blur-3xl opacity-30 animate-pulse sm:h-44 sm:w-44 md:-top-8 md:h-60 md:w-60"
+                  style={{
+                    background:
+                      "radial-gradient(circle,#f5d9a6,transparent 70%)",
+                  }}
+                />
+              )}
 
-          {/* Center */}
-          <div className="text-center md:w-2/4 relative">
-            {night && (
-              <div
-                className="absolute left-1/2 -translate-x-1/2 -top-10
-                w-64 h-64 rounded-full blur-3xl opacity-40 animate-pulse"
-                style={{
-                  background:
-                    "radial-gradient(circle,#f5d9a6,transparent 70%)",
-                }}
-              />
-            )}
+              <motion.h2
+                initial={{ opacity: 0, y: 22 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="relative mx-auto max-w-2xl text-sm leading-relaxed text-[#F4A261] font-serif sm:text-base md:text-lg"
+              >
+                يَا أَيُّهَا الَّذِينَ آمَنُوا أَطِيعُوا اللَّهَ وَأَطِيعُوا الرَّسُولَ
+              </motion.h2>
 
-            <motion.h2
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1 }}
-              className="relative text-xl md:text-3xl text-[#F4A261] font-serif"
-            >
-              يَا أَيُّهَا الَّذِينَ آمَنُوا أَطِيعُوا اللَّهَ وَأَطِيعُوا الرَّسُولَ
-            </motion.h2>
+              <div className="mx-auto mt-2 h-[2px] w-20 bg-cyan-400/90 animate-cursor sm:w-28" />
 
-            {/* AI Cursor Line */}
-            <div className="mx-auto mt-2 w-32 h-[2px] bg-cyan-400 animate-cursor" />
+              <motion.h1
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15, duration: 0.9 }}
+                className="mx-auto mt-3 max-w-3xl text-[clamp(1.65rem,1rem+5vw,3.4rem)] font-serif font-semibold leading-[1.05] text-white drop-shadow-[0_10px_24px_rgba(0,0,0,0.35)]"
+              >
+                Kokan Islamic Library
+              </motion.h1>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 1 }}
-              className="mt-4 text-4xl md:text-6xl font-serif font-bold text-white"
-            >
-              Kokan Islamic Library
-            </motion.h1>
+              <p className="mx-auto mt-3 max-w-xl text-xs leading-relaxed text-slate-300/90 sm:text-sm md:text-base">
+                Explore curated Islamic knowledge with a calm, modern reading experience.
+              </p>
+
+              <div className="mt-6 flex flex-col items-stretch justify-center gap-2 sm:flex-row sm:gap-3">
+                <a href="#search" className="inline-flex items-center justify-center rounded-full bg-cyan-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-500/20 transition hover:-translate-y-0.5 hover:bg-cyan-400 sm:px-6">
+                  Browse Books
+                </a>
+                <a href="#book-grid" className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-slate-100 backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/20 sm:px-6">
+                  View Catalog
+                </a>
+              </div>
+            </div>
           </div>
-
-          {/* Right */}
-          <motion.div
-            animate={{ rotate: [0, 4, 0] }}
-            transition={{ duration: 10, repeat: Infinity }}
-            className="w-32 h-32 rounded-full bg-white/5 backdrop-blur-md
-            border border-[#F4A261]/40 flex items-center justify-center
-            shadow-[0_0_60px_rgba(244,162,97,.45)]"
-          >
-            <BuildingLibraryIcon className="w-16 h-16 text-[#F4A261]" />
-          </motion.div>
         </div>
       </div>
 
@@ -261,6 +273,12 @@ const LibraryHero = () => {
           50% { opacity: 1; transform: scale(1.6); }
         }
         .animate-node { animation: node 4s ease-in-out infinite; }
+
+        @keyframes orb {
+          0%, 100% { transform: translateY(0) translateX(0) scale(1); opacity: .35; }
+          50% { transform: translateY(-18px) translateX(10px) scale(1.05); opacity: .6; }
+        }
+        .animate-orb { animation: orb 10s ease-in-out infinite; }
 
         @keyframes cursor {
           0%,100% { opacity: .3; }

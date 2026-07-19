@@ -15,4 +15,5 @@ from .book_permission_model import BookPermission
 from .post_model import MarkazPost
 from .donation_models import DonationInfo
 from .interaction_model import UserBookInteraction
+from .analytics_model import SiteVisit
 from .library_management_models import BookCopy, IssuedBook, DigitalAccess

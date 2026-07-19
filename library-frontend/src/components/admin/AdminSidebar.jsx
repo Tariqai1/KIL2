@@ -10,37 +10,21 @@ import {
 } from '@heroicons/react/24/outline';
 
 // ✅ Custom Hooks & Services
-import useAuth from '../../hooks/useAuth'; 
+import useAuth from '../../hooks/useAuth';
+import useUserRole from '../../hooks/useUserRole';
  
 
 const AdminSidebar = ({ mobileClose = () => {} }) => {
     const navigate = useNavigate();
-    const { user, logout } = useAuth(); 
+    const { user, logout } = useAuth();
+    const { can } = useUserRole();
     const [pendingCount, setPendingCount] = useState(0);
 
     // --- 1. Advanced Permission Checker (Memoized for Performance) ---
     const hasPermission = useCallback((permCode) => {
-        // Agar user login hi nahi hai
         if (!user) return false;
-        
-        // 1. Super Admin Bypass (Role ko safe tarike se check karna)
-        // Kabhi role object hota hai {name: 'Admin'}, kabhi string 'Admin'
-        const roleName = user.role?.name || user.role || '';
-        const normalizedRole = String(roleName).toLowerCase();
-
-        if (['admin', 'superadmin', 'administrator'].includes(normalizedRole)) return true;
-
-        // 2. Public Items (Jinke liye permission null hai)
-        if (!permCode) return true;
-
-        if (Array.isArray(permCode)) {
-            return permCode.some((code) => Array.isArray(user.permissions) && user.permissions.includes(code));
-        }
-
-        // 3. Check Permissions Array Safely
-        // Ensure karte hain ki permissions exist kare aur array ho
-        return Array.isArray(user.permissions) && user.permissions.includes(permCode);
-    }, [user]);
+        return can(permCode);
+    }, [user, can]);
 
     // --- 2. Fetch Pending Requests Count (Safe & Optimized) ---
     useEffect(() => {
@@ -119,8 +103,8 @@ const AdminSidebar = ({ mobileClose = () => {} }) => {
             section: "Security",
             items: [
                 { name: 'Restricted Books', path: '/admin/book-permissions', icon: LockClosedIcon, requiredPerm: 'PERMISSION_VIEW' },
-                { name: 'Digital Access', path: '/admin/digital-access-history', icon: ComputerDesktopIcon, requiredPerm: 'LOGS_VIEW' },
-                { name: 'Audit Logs', path: '/admin/logs', icon: ClipboardDocumentListIcon, requiredPerm: 'LOGS_VIEW' },
+                { name: 'Digital Access', path: '/admin/digital-access-history', icon: ComputerDesktopIcon, requiredPerm: 'LOG_VIEW' },
+                { name: 'Audit Logs', path: '/admin/logs', icon: ClipboardDocumentListIcon, requiredPerm: 'LOG_VIEW' },
                 {
                     name: 'Homepage Settings',
                     path: '/admin/homepage-settings',

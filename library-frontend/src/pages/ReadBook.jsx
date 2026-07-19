@@ -13,6 +13,7 @@ import apiClient from '../api/apiClient';
 import { getCoverUrl, getPdfUrl } from '../utils/cover';
 import PdfViewer from '../components/book/PdfViewer';
 import { interactionService } from '../api/interactionService'; // Ensure correct import
+import analyticsService from '../api/analyticsService';
 import toast from 'react-hot-toast';
 
 const ReadBook = () => {
@@ -49,6 +50,37 @@ const ReadBook = () => {
                 if (status) {
                     setIsBookmarked(status.is_bookmarked);
                     // Future: We can scroll to status.last_page_read here
+                }
+
+                try {
+                    const recentReadsRaw = localStorage.getItem("bookNest_recent_reads");
+                    const recentReads = recentReadsRaw ? JSON.parse(recentReadsRaw) : [];
+                    const nextEntry = {
+                        book_id: Number(id),
+                        title: bookData?.title,
+                        cover_image_url: bookData?.cover_image_url || bookData?.cover_image,
+                        last_page_read: status?.last_page_read || 1,
+                        total_pages: status?.total_pages || 0,
+                        updated_at: new Date().toISOString(),
+                    };
+
+                    const filtered = Array.isArray(recentReads)
+                      ? recentReads.filter((entry) => String(entry.book_id) !== String(id))
+                      : [];
+
+                    filtered.unshift(nextEntry);
+                    localStorage.setItem("bookNest_recent_reads", JSON.stringify(filtered.slice(0, 8)));
+
+                    await analyticsService.trackVisit({
+                        visitor_id: analyticsService.getVisitorId(),
+                        path: `/read/${id}`,
+                        event_type: 'book_read',
+                        book_id: Number(id),
+                        referrer: document.referrer || null,
+                        user_agent: navigator.userAgent,
+                    });
+                } catch (storageError) {
+                    console.warn("Could not store recent read:", storageError);
                 }
 
                 // C. Default to PDF URL fix

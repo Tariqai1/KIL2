@@ -77,7 +77,7 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-slate-900">
+    <div className="min-h-screen flex items-center justify-center px-3 py-6 sm:px-4 sm:py-8 relative overflow-hidden bg-slate-900">
       
       {/* Background Effects */}
       <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] pointer-events-none" />
@@ -86,7 +86,7 @@ const ResetPassword = () => {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/20 relative z-10 p-8"
+        className="w-full max-w-[34rem] bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/20 relative z-10 p-4 sm:p-6 lg:p-8"
       >
         <div className="text-center mb-6">
           <div className="mx-auto w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">

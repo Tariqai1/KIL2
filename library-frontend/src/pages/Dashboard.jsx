@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { bookService } from '../api/bookService';
 import { userService } from '../api/userService';
 import restrictedBookService from "../api/restrictedBookService";
+import analyticsService from '../api/analyticsService';
 
 import { copyIssueService } from '../api/copyIssueService';
 import { logService } from '../api/logService';
@@ -121,6 +122,7 @@ const Dashboard = () => {
     
     const [chartData, setChartData] = useState({ added: [], status: [] });
     const [recentLogs, setRecentLogs] = useState([]);
+    const [analytics, setAnalytics] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [lastUpdated, setLastUpdated] = useState(null);
 
@@ -142,7 +144,8 @@ const Dashboard = () => {
                 hasPermission('USER_VIEW') ? userService.getAllUsers() : Promise.resolve([]),
                 hasPermission('REQUEST_VIEW') ? restrictedBookService.getAllRequests() : Promise.resolve([]),
                 hasPermission('BOOK_ISSUE') ? copyIssueService.getAllIssues() : Promise.resolve([]),
-                hasPermission('LOGS_VIEW') ? logService.getRecentLogs(5) : Promise.resolve([])
+                hasPermission('LOG_VIEW') ? logService.getRecentLogs(5) : Promise.resolve([]),
+                hasPermission('LOG_VIEW') ? analyticsService.getSummary() : Promise.resolve(null)
             ];
 
             const results = await Promise.allSettled(promises);
@@ -155,6 +158,7 @@ const Dashboard = () => {
             const requests = getValue(2);
             const issues = getValue(3);
             const logs = getValue(4);
+            const analyticsSummary = getValue(5);
 
             // 1. Process Stats
             setStats({
@@ -192,6 +196,7 @@ const Dashboard = () => {
 
             // 4. Logs
             setRecentLogs(logs);
+            setAnalytics(analyticsSummary || null);
             setLastUpdated(new Date());
 
         } catch (err) {
@@ -283,9 +288,76 @@ const Dashboard = () => {
                         <QuickAction to="/admin/books/add" icon={PlusCircleIcon} label="Add Book" color="bg-indigo-600" permission="BOOK_MANAGE" role={role} userPermissions={permissions} />
                         <QuickAction to="/admin/access-requests" icon={ShieldCheckIcon} label="Approvals" color="bg-amber-500" permission="REQUEST_MANAGE" role={role} userPermissions={permissions} />
                         <QuickAction to="/admin/copies" icon={QueueListIcon} label="Issue Book" color="bg-purple-600" permission="BOOK_ISSUE" role={role} userPermissions={permissions} />
-                        <QuickAction to="/admin/logs" icon={ListBulletIcon} label="System Logs" color="bg-slate-600" permission="LOGS_VIEW" role={role} userPermissions={permissions} />
+                        <QuickAction to="/admin/logs" icon={ListBulletIcon} label="System Logs" color="bg-slate-600" permission="LOG_VIEW" role={role} userPermissions={permissions} />
                     </div>
                 </motion.div>
+
+                {hasPermission('LOG_VIEW') && (
+                    <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                        <div className="flex items-center justify-between gap-4 mb-5">
+                            <div>
+                                <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                                    <PresentationChartLineIcon className="w-5 h-5 text-indigo-500" />
+                                    Platform Analytics
+                                </h3>
+                                <p className="text-xs text-slate-500 mt-1">Visitor traffic and reading activity</p>
+                            </div>
+                            <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-md font-bold">
+                                {analytics?.generated_at ? new Date(analytics.generated_at).toLocaleString() : 'Live'}
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Total Visits</p>
+                                <p className="mt-2 text-3xl font-black text-slate-800 tabular-nums">{analytics?.total_visits ?? 0}</p>
+                            </div>
+                            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Unique Visitors</p>
+                                <p className="mt-2 text-3xl font-black text-slate-800 tabular-nums">{analytics?.unique_visitors ?? 0}</p>
+                            </div>
+                            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Book Reads</p>
+                                <p className="mt-2 text-3xl font-black text-slate-800 tabular-nums">{analytics?.book_read_events ?? 0}</p>
+                            </div>
+                            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Books Read</p>
+                                <p className="mt-2 text-3xl font-black text-slate-800 tabular-nums">{analytics?.unique_books_read ?? 0}</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-5">
+                            <div className="rounded-xl border border-slate-100 p-4">
+                                <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Top Pages</h4>
+                                <div className="space-y-3">
+                                    {(analytics?.top_paths || []).slice(0, 4).map((item) => (
+                                        <div key={item.label} className="flex items-center justify-between gap-3 text-sm">
+                                            <span className="text-slate-700 truncate">{item.label}</span>
+                                            <span className="font-bold text-slate-500 tabular-nums">{item.value}</span>
+                                        </div>
+                                    ))}
+                                    {!analytics?.top_paths?.length && <p className="text-sm text-slate-400">No visit data yet.</p>}
+                                </div>
+                            </div>
+
+                            <div className="rounded-xl border border-slate-100 p-4">
+                                <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Top Books Read</h4>
+                                <div className="space-y-3">
+                                    {(analytics?.top_books || []).slice(0, 4).map((item) => (
+                                        <div key={item.label} className="flex items-center justify-between gap-3 text-sm">
+                                            <div className="min-w-0">
+                                                <p className="text-slate-700 truncate">{item.label}</p>
+                                                <p className="text-[11px] text-slate-400 truncate">{item.meta}</p>
+                                            </div>
+                                            <span className="font-bold text-slate-500 tabular-nums">{item.value}</span>
+                                        </div>
+                                    ))}
+                                    {!analytics?.top_books?.length && <p className="text-sm text-slate-400">No book reads tracked yet.</p>}
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
 
                 {/* --- 3. Analytics & Charts --- */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -362,7 +434,7 @@ const Dashboard = () => {
                 </div>
 
                 {/* --- 4. Recent Logs (Conditional) --- */}
-                {hasPermission('LOGS_VIEW') && (
+                {hasPermission('LOG_VIEW') && (
                     <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                         <div className="p-6 border-b border-slate-100 flex justify-between items-center">
                             <h3 className="font-bold text-slate-800 flex items-center gap-2">

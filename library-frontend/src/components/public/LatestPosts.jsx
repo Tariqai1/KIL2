@@ -105,11 +105,11 @@ const LatestPosts = () => {
           <MegaphoneIcon className="w-8 h-8" />
         </div>
 
-        <h1 className="text-4xl font-extrabold text-[#002147] mb-3 tracking-tight">
+        <h1 className="page-title text-[#002147] mb-3 max-w-3xl mx-auto">
           Latest Announcements
         </h1>
 
-        <p className="text-lg text-slate-500 max-w-2xl mx-auto">
+        <p className="body-copy max-w-2xl mx-auto">
           Stay updated with the latest news, events, and official circulars from the Library.
         </p>
 
@@ -142,7 +142,7 @@ const LatestPosts = () => {
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.25, delay: index * 0.03 }}
-                    className="group bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
+                    className="group card-surface overflow-hidden hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
                   >
                     {/* IMAGE AREA */}
                     <div
@@ -194,13 +194,13 @@ const LatestPosts = () => {
                     {/* CONTENT AREA */}
                     <div className="p-6 flex-1 flex flex-col">
                       <h3
-                        className="text-xl font-bold text-slate-800 mb-3 line-clamp-2 group-hover:text-blue-700 transition-colors cursor-pointer"
+                        className="card-title text-slate-800 mb-3 line-clamp-2 group-hover:text-blue-700 transition-colors cursor-pointer"
                         onClick={() => setSelectedPost(post)}
                       >
                         {post?.title || "Untitled Announcement"}
                       </h3>
 
-                      <p className="text-slate-500 text-sm line-clamp-3 mb-6 flex-1 leading-relaxed">
+                      <p className="body-copy line-clamp-3 mb-6 flex-1">
                         {post?.content || "Click below to view the details of this announcement."}
                       </p>
 
@@ -256,7 +256,7 @@ const LatestPosts = () => {
       <AnimatePresence>
         {selectedPost && (
           <motion.div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] flex items-start justify-center bg-black/60 p-2 backdrop-blur-sm sm:items-center sm:p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -267,20 +267,20 @@ const LatestPosts = () => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.97, y: 10 }}
               transition={{ duration: 0.2 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto relative flex flex-col"
+              className="relative flex w-full max-w-3xl max-h-[calc(100vh-1rem)] flex-col overflow-y-auto rounded-2xl bg-white shadow-2xl sm:max-h-[90vh]"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close Button */}
               <button
                 onClick={() => setSelectedPost(null)}
-                className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full z-10 transition-colors"
+                className="absolute right-3 top-3 z-10 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/70 sm:right-4 sm:top-4"
                 title="Close"
               >
                 <XMarkIcon className="w-5 h-5" />
               </button>
 
               {/* Modal Media (FULL IMAGE VIEW) */}
-              <div className="w-full bg-slate-100 relative rounded-t-2xl overflow-hidden">
+              <div className="relative w-full overflow-hidden rounded-t-2xl bg-slate-100 max-h-[38vh] sm:max-h-[60vh]">
                 {(() => {
                   const fileUrl = getFileUrl(selectedPost?.file_url);
                   const fileType = getFileType(fileUrl);
@@ -289,8 +289,8 @@ const LatestPosts = () => {
                   // IMAGE FULL VIEW (with zoom controls)
                   if (fileUrl && fileType === "image" && !isBroken) {
                     return (
-                      <div className="w-full bg-black/5 flex flex-col items-center">
-                        <div className="w-full flex items-center justify-center py-3 gap-2">
+                      <div className="flex w-full flex-col items-center bg-black/5">
+                        <div className="flex w-full items-center justify-center gap-2 py-2 sm:py-3">
                           <button
                             onClick={(e) => { e.stopPropagation(); setImageScale(s => Math.max(0.5, s - 0.25)); }}
                             className="px-3 py-1 rounded bg-white/90 border"
@@ -305,12 +305,12 @@ const LatestPosts = () => {
                             className="px-3 py-1 rounded bg-white/90 border ml-2"
                           >Reset</button>
                         </div>
-                        <div className="w-full bg-black/5 overflow-auto flex items-center justify-center">
+                        <div className="flex w-full items-center justify-center overflow-auto bg-black/5">
                           <img
                             src={fileUrl}
                             alt={selectedPost?.title || "Post Image"}
                             style={{ transform: `scale(${imageScale})`, transition: 'transform 150ms ease' }}
-                            className="max-h-[75vh] object-contain mx-auto"
+                            className="mx-auto max-h-[38vh] object-contain sm:max-h-[60vh]"
                             onError={() => handleImageFail(selectedPost?.id)}
                           />
                         </div>
@@ -344,9 +344,9 @@ const LatestPosts = () => {
               </div>
 
               {/* Modal Content */}
-              <div className="p-8">
-                <div className="flex flex-wrap items-center gap-3 mb-4">
-                  <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
+              <div className="p-4 sm:p-8">
+                <div className="mb-3 flex flex-wrap items-center gap-3 sm:mb-4">
+                  <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-blue-700">
                     {selectedPost?.tags || "Notice"}
                   </span>
 
@@ -363,18 +363,18 @@ const LatestPosts = () => {
                   </span>
                 </div>
 
-                <h2 className="text-2xl md:text-3xl font-extrabold text-[#002147] mb-6 leading-tight">
+                <h2 className="mb-4 text-xl font-extrabold leading-tight text-[#002147] sm:mb-6 sm:text-2xl md:text-3xl">
                   {selectedPost?.title || "Untitled Announcement"}
                 </h2>
 
-                <div className="mb-3 flex items-center gap-2">
-                  <span className="text-sm text-slate-500">Text size</span>
+                <div className="mb-3 flex items-center gap-2 text-xs sm:text-sm">
+                  <span className="text-slate-500">Text size</span>
                   <button onClick={() => setTextSize(s => Math.max(12, s - 2))} className="px-2 py-1 bg-slate-100 rounded">A-</button>
                   <button onClick={() => setTextSize(s => Math.min(28, s + 2))} className="px-2 py-1 bg-slate-100 rounded">A+</button>
                   <button onClick={() => setTextSize(16)} className="px-2 py-1 bg-slate-100 rounded">Reset</button>
                 </div>
 
-                <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed whitespace-pre-wrap" style={{ fontSize: `${textSize}px` }}>
+                <div className="prose prose-slate max-w-none whitespace-pre-wrap leading-relaxed text-slate-600" style={{ fontSize: `${textSize}px` }}>
                   {selectedPost?.content || "No details available."}
                 </div>
               </div>

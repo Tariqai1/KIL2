@@ -18,14 +18,14 @@ const Layout = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="flex h-screen bg-[#F3F6F9] overflow-hidden font-sans">
+        <div className="flex h-dvh min-h-screen bg-[#F3F6F9] overflow-hidden font-sans">
             
             {/* ==========================================
                 1. SIDEBAR SECTION
                ========================================== */}
             
             {/* Desktop Sidebar (Toggleable) */}
-            <div className={`hidden lg:block flex-shrink-0 transition-all duration-300 ${isSidebarCollapsed ? 'w-0' : 'lg:w-72'}`}>
+            <div className={`hidden lg:block flex-shrink-0 transition-all duration-300 ${isSidebarCollapsed ? 'w-0' : 'lg:w-[18rem] xl:w-[19rem]'}`}>
                 {!isSidebarCollapsed && <AdminSidebar />}
             </div>
 
@@ -39,7 +39,7 @@ const Layout = () => {
                     ></div>
 
                     {/* Sidebar Content */}
-                    <div className="relative w-72 bg-[#001D3D] shadow-2xl animate-in slide-in-from-left duration-300">
+                    <div className="relative w-[min(86vw,19rem)] bg-[#001D3D] shadow-2xl animate-in slide-in-from-left duration-300">
                         <AdminSidebar mobileClose={() => setIsSidebarOpen(false)} />
                     </div>
                 </div>
@@ -51,7 +51,7 @@ const Layout = () => {
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 
                 {/* --- HEADER / NAVBAR --- */}
-                <header className="h-20 bg-white/90 backdrop-blur-xl border-b border-slate-200/60 flex items-center justify-between px-4 sm:px-8 z-20 sticky top-0 shadow-sm">
+                <header className="min-h-[4.5rem] bg-white/90 backdrop-blur-xl border-b border-slate-200/60 flex items-center justify-between px-3 sm:px-5 lg:px-7 z-20 sticky top-0 shadow-sm">
                     
                     {/* Left: Mobile Toggle & Search/Title */}
                     <div className="flex items-center gap-4 flex-1">
@@ -86,7 +86,7 @@ const Layout = () => {
                     </div>
 
                     {/* Right: Actions & Profile */}
-                    <div className="flex items-center gap-3 sm:gap-5">
+                    <div className="flex items-center gap-2 sm:gap-3 lg:gap-5">
 
                         {/* ✅ NEW: Quick Action - ADD POST */}
                         <button 
@@ -133,7 +133,7 @@ const Layout = () => {
                 </header>
 
                 {/* --- PAGE CONTENT (Outlet) --- */}
-                <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-2 scroll-smooth">
+                <main className="flex-1 overflow-x-hidden overflow-y-auto p-3 sm:p-4 lg:p-5 scroll-smooth">
                     
                     {/* Mobile FAB: Add Post (Only on small screens) */}
                     <button 
@@ -143,7 +143,7 @@ const Layout = () => {
                         <PlusIcon className="w-6 h-6" />
                     </button>
 
-                    <div className="max-w-[1600px] mx-auto animate-in fade-in duration-500">
+                    <div className="app-shell-container-wide animate-in fade-in duration-500">
                         <Outlet />
                     </div>
                 </main>

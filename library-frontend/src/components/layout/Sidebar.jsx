@@ -67,8 +67,8 @@ const Sidebar = () => {
             title: "Security",
             items: [
                 { name: "Restricted Books", path: "/admin/book-permissions", icon: LockClosedIcon, requiredPerm: "PERMISSION_VIEW" },
-                { name: "Digital Access", path: "/admin/digital-access-history", icon: ComputerDesktopIcon, requiredPerm: "LOGS_VIEW" },
-                { name: "Audit Logs", path: "/admin/logs", icon: ClockIcon, requiredPerm: "LOGS_VIEW" },
+                { name: "Digital Access", path: "/admin/digital-access-history", icon: ComputerDesktopIcon, requiredPerm: "LOG_VIEW" },
+                { name: "Audit Logs", path: "/admin/logs", icon: ClockIcon, requiredPerm: "LOG_VIEW" },
             ]
         }
     ], [user]);

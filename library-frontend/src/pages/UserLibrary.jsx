@@ -149,24 +149,24 @@ const PublicBookCard = ({
   return (
     <div
       onClick={handleCardClick}
-      className={`group relative bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer flex flex-col h-full overflow-hidden ${className}`}
+      className={`group relative mx-auto w-full max-w-[340px] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300 cursor-pointer hover:shadow-2xl sm:max-w-none ${className}`}
     >
       {/* Badges */}
-      <div className="absolute top-3 left-3 z-20">
+      <div className="absolute top-2 left-2 z-20 sm:top-3 sm:left-3">
         {isRestricted ? (
-          <div className="flex items-center gap-1 bg-red-600 text-white text-[11px] font-extrabold px-3 py-1.5 rounded-full shadow-md">
-            <LockSolid className="w-4 h-4" />
+          <div className="flex items-center gap-1 rounded-full bg-red-600 px-2.5 py-1 text-[10px] font-extrabold text-white shadow-md sm:px-3 sm:py-1.5 sm:text-[11px]">
+            <LockSolid className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             Restricted
           </div>
         ) : (
-          <div className="bg-emerald-600 text-white text-[11px] font-extrabold px-3 py-1.5 rounded-full shadow-md">
+          <div className="rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-extrabold text-white shadow-md sm:px-3 sm:py-1.5 sm:text-[11px]">
             Open Access
           </div>
         )}
       </div>
 
-      <div className="absolute top-3 right-3 z-20">
-        <div className="bg-[#2D89C8] text-white text-[11px] font-extrabold px-3 py-1.5 rounded-full shadow-md">
+      <div className="absolute top-2 right-2 z-20 sm:top-3 sm:right-3">
+        <div className="rounded-full bg-[#2D89C8] px-2.5 py-1 text-[10px] font-extrabold text-white shadow-md sm:px-3 sm:py-1.5 sm:text-[11px]">
           #{bookId}
         </div>
       </div>
@@ -175,7 +175,7 @@ const PublicBookCard = ({
       {typeof onToggleFavorite === "function" && (
         <button
           onClick={(e) => onToggleFavorite(e, book?.id)}
-          className="absolute bottom-3 right-3 z-20 px-3 py-1.5 rounded-full text-[11px] font-bold shadow-md border border-gray-200 bg-white hover:bg-gray-50 transition"
+          className="absolute bottom-2 right-2 z-20 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-bold shadow-md transition hover:bg-gray-50 sm:bottom-3 sm:right-3 sm:px-3 sm:py-1.5 sm:text-[11px]"
           title={isFavorite ? "Remove Favorite" : "Add Favorite"}
         >
           {isFavorite ? "❤️ Saved" : "🤍 Save"}
@@ -183,8 +183,8 @@ const PublicBookCard = ({
       )}
 
       {/* COVER AREA */}
-      <div className="relative px-4 pt-5 pb-3 flex justify-center bg-gradient-to-b from-[#F8F9FA] to-white group-hover:from-[#F1F3F5] transition-colors">
-        <div className="relative w-[150px] sm:w-[165px] md:w-[175px] lg:w-[185px] aspect-[2/3] rounded-2xl overflow-hidden bg-gray-200 shadow-md group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-300">
+      <div className="relative flex justify-center bg-gradient-to-b from-[#F8F9FA] to-white px-3 pb-2 pt-4 transition-colors group-hover:from-[#F1F3F5] sm:px-4 sm:pb-3 sm:pt-5">
+        <div className="relative aspect-[2/3] w-[118px] overflow-hidden rounded-2xl bg-gray-200 shadow-md transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl sm:w-[150px] md:w-[175px] lg:w-[185px]">
           {!imgLoaded && (
             <div className="absolute inset-0 bg-slate-200 animate-pulse" />
           )}
@@ -205,7 +205,7 @@ const PublicBookCard = ({
 
           {/* Hover overlay */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition flex items-center justify-center">
-            <span className="opacity-0 group-hover:opacity-100 transition text-white text-xs font-bold px-4 py-2 rounded-full bg-black/40">
+            <span className="rounded-full bg-black/40 px-3 py-1.5 text-[10px] font-bold text-white opacity-0 transition group-hover:opacity-100 sm:px-4 sm:py-2 sm:text-xs">
               Click to View
             </span>
           </div>
@@ -213,9 +213,9 @@ const PublicBookCard = ({
       </div>
 
       {/* Details */}
-      <div className="px-4 pb-4 flex flex-col flex-grow text-center">
+      <div className="flex flex-grow flex-col px-3 pb-3 text-center sm:px-4 sm:pb-4">
         <h3
-          className="text-sm md:text-base font-serif font-extrabold text-[#002147] leading-snug mb-1 line-clamp-2 group-hover:text-[#2D89C8] transition-colors"
+          className="mb-1 line-clamp-2 font-serif text-[0.95rem] font-extrabold leading-snug text-[#002147] transition-colors group-hover:text-[#2D89C8] sm:text-sm md:text-base"
           style={{
             fontFamily: '"Jameel Noori Nastaleeq", "Noto Naskh Arabic", serif',
           }}
@@ -223,19 +223,19 @@ const PublicBookCard = ({
           {title}
         </h3>
 
-        <p className="text-xs text-gray-500 mb-3 line-clamp-1">{author}</p>
+        <p className="mb-2 line-clamp-1 text-[11px] text-gray-500 sm:mb-3 sm:text-xs">{author}</p>
 
-        <div className="w-full h-px bg-gray-100 mt-auto mb-3" />
+        <div className="mt-auto mb-2 h-px w-full bg-gray-100 sm:mb-3" />
 
         {/* Meta */}
-        <div className="flex justify-between items-center text-[11px] text-gray-500 font-semibold">
+        <div className="flex items-center justify-between text-[10px] font-semibold text-gray-500 sm:text-[11px]">
           <div className="flex items-center gap-1">
-            <CalendarSolid className="w-4 h-4 text-gray-300" />
+            <CalendarSolid className="h-3.5 w-3.5 text-gray-300 sm:h-4 sm:w-4" />
             <span>{metaDate}</span>
           </div>
 
           <div className="flex items-center gap-1">
-            <EyeSolid className="w-4 h-4 text-gray-300" />
+            <EyeSolid className="h-3.5 w-3.5 text-gray-300 sm:h-4 sm:w-4" />
             <span>{views}</span>
           </div>
         </div>
@@ -550,20 +550,20 @@ const UserLibrary = () => {
       </div>
 
       {/* FILTER BAR */}
-      <div className="sticky top-20 z-40 max-w-7xl mx-auto px-4 -mt-16">
+      <div className="relative z-30 max-w-7xl mx-auto px-4 mt-6 md:sticky md:top-16 md:-mt-20">
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-lg rounded-2xl p-4 flex flex-col xl:flex-row gap-4 justify-between items-center"
+          className="rounded-[1.75rem] border border-white/50 bg-white/78 p-3 shadow-[0_18px_55px_-30px_rgba(15,23,42,0.45)] backdrop-blur-2xl flex flex-col gap-3 justify-between items-center md:p-4 xl:flex-row xl:gap-4"
         >
           {/* Filters */}
-          <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-center md:justify-start">
-            <div className="hidden md:flex items-center gap-2 text-slate-500 text-sm font-bold bg-slate-100/50 px-3 py-2 rounded-lg">
+          <div className="flex flex-wrap items-center gap-2.5 w-full xl:w-auto justify-center md:justify-start">
+            <div className="hidden md:flex items-center gap-2 text-slate-500 text-sm font-bold bg-slate-100/50 px-3 py-2 rounded-xl">
               <FunnelIcon className="h-4 w-4" /> Filters
             </div>
 
             <select
-              className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold hover:border-emerald-500 outline-none cursor-pointer"
+              className="min-w-[150px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold outline-none transition hover:border-emerald-500 cursor-pointer"
               value={selectedLanguage}
               onChange={(e) => setSelectedLanguage(e.target.value)}
             >
@@ -574,7 +574,7 @@ const UserLibrary = () => {
             </select>
 
             <select
-              className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold hover:border-emerald-500 outline-none cursor-pointer max-w-[220px]"
+              className="max-w-[220px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold outline-none transition hover:border-emerald-500 cursor-pointer"
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
             >
@@ -587,9 +587,9 @@ const UserLibrary = () => {
           </div>
 
           {/* Controls */}
-          <div className="flex items-center gap-4 border-t xl:border-t-0 border-slate-200 pt-3 xl:pt-0 w-full xl:w-auto justify-between xl:justify-end">
+          <div className="flex w-full items-center justify-between gap-3 border-t border-slate-200 pt-3 xl:w-auto xl:justify-end xl:border-t-0 xl:pt-0">
             {/* View Toggle */}
-            <div className="flex bg-slate-100 p-1 rounded-lg">
+            <div className="flex rounded-2xl bg-slate-100 p-1">
               <button
                 onClick={() => setViewMode("grid")}
                 className={`p-1.5 rounded-md transition-all ${
@@ -616,7 +616,7 @@ const UserLibrary = () => {
             </div>
 
             {/* Sort */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 whitespace-nowrap">
               <ArrowsUpDownIcon className="h-4 w-4 text-slate-400" />
               <select
                 className="bg-transparent text-sm font-bold text-slate-700 outline-none cursor-pointer"
@@ -634,7 +634,7 @@ const UserLibrary = () => {
       </div>
 
       {/* MAIN CONTENT */}
-      <div className="max-w-7xl mx-auto px-4 mt-12 space-y-12">
+      <div className="max-w-7xl mx-auto px-4 mt-6 space-y-12 md:mt-12">
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
             {[...Array(10)].map((_, i) => (
@@ -684,7 +684,7 @@ const UserLibrary = () => {
                   viewport={{ once: true }}
                   className={
                     viewMode === "grid"
-                      ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+                      ? "grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 sm:gap-6"
                       : "grid grid-cols-1 md:grid-cols-2 gap-4"
                   }
                 >

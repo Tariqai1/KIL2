@@ -96,10 +96,10 @@ const MarkazFeed = () => {
         <div className="max-w-5xl mx-auto px-4 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900">
+              <h1 className="page-title text-gray-900 max-w-3xl">
                 📢 Markaz Updates
               </h1>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="body-copy mt-1">
                 Official announcements, notices, circulars and important updates.
               </p>
             </div>
@@ -137,7 +137,7 @@ const MarkazFeed = () => {
         {emptyState && (
           <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-10 text-center">
             <div className="text-4xl mb-3">📭</div>
-            <h2 className="text-lg font-bold text-gray-900">No announcements yet</h2>
+            <h2 className="section-title text-gray-900">No announcements yet</h2>
             <p className="text-gray-500 mt-1">
               When admin publishes updates, they will appear here.
             </p>
@@ -175,12 +175,12 @@ const MarkazFeed = () => {
 
                   {/* Content */}
                   <div className="p-5 sm:p-6">
-                    <h2 className="text-lg sm:text-xl font-extrabold text-gray-900 leading-snug">
+                      <h2 className="card-title text-gray-900 leading-snug">
                       {post.title}
                     </h2>
 
                     {post.content && (
-                      <p className="mt-3 text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      <p className="mt-3 body-copy whitespace-pre-wrap">
                         {post.content}
                       </p>
                     )}

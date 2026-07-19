@@ -118,7 +118,7 @@ const UserNavbar = () => {
           TOP BAR
       ---------------------------------------------------- */}
       <div className="bg-[#001D3D] border-b border-white/5 hidden md:block">
-        <div className="max-w-7xl mx-auto px-6 h-9 flex items-center justify-between">
+        <div className="app-shell-container h-9 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <TopLink label="Our Projects" icon={GlobeAltIcon} />
             <TopLink label="About Us" icon={InformationCircleIcon} />
@@ -134,11 +134,11 @@ const UserNavbar = () => {
           MAIN NAVBAR
       ---------------------------------------------------- */}
       <nav className="sticky top-0 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 shadow-sm transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-[72px]">
+        <div className="app-shell-container">
+          <div className="flex items-center justify-between min-h-[4.25rem] py-2 gap-2">
             
             {/* LOGO */}
-            <div className="flex items-center min-w-[200px]">
+            <div className="flex items-center min-w-0 flex-1 md:flex-none">
               <Link to="/" className="flex items-center gap-3 group" onClick={() => setIsMobileMenuOpen(false)}>
                 <div className="relative">
                   <div className="absolute inset-0 rounded-full bg-blue-400/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -176,7 +176,7 @@ const UserNavbar = () => {
             </div>
 
             {/* RIGHT ACTIONS */}
-            <div className="hidden md:flex items-center justify-end gap-4 min-w-[200px]">
+            <div className="hidden md:flex items-center justify-end gap-3 lg:gap-4 min-w-0 md:flex-1 lg:flex-none">
               
               {/* Donate */}
               <button

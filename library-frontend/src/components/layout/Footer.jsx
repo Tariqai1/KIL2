@@ -46,7 +46,7 @@ const Footer = () => {
 
   return (
     <footer className="bg-[#001D3D] text-white pt-16 pb-8 font-sans border-t border-[#F4A261]/20">
-      <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12">
+      <div className="app-shell-container grid grid-cols-1 md:grid-cols-4 gap-10 lg:gap-12">
         {/* 1. Brand Section */}
         <div className="col-span-1 md:col-span-1">
           <div className="flex items-center gap-3 mb-6">
@@ -215,7 +215,7 @@ const Footer = () => {
       </div>
 
       {/* Bottom Bar */}
-      <div className="max-w-7xl mx-auto px-4 mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
+      <div className="app-shell-container mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
         <p>
           &copy; {new Date().getFullYear()} Kokan Islamic Library. All rights
           reserved.
